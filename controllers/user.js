@@ -36,3 +36,27 @@ exports.getUsers = async (req, res) => {
 
     }
 }
+
+exports.userLogin = async (req, res) => {
+
+    try {
+
+        const user = await User.find({ username: req.body.username })
+        if (user) {
+            const result = await bcrypt.compare(req.body.password, user.password)
+            if (result)
+                res.status(200).json({ message: 'user logged successfully logged in' })
+            else
+                res.status(401).json({ message: 'Authentification failed' })
+
+
+        }
+        else
+            res.status(401).json({ message: 'Authentification failed' })
+
+    } catch (error) {
+
+        res.status(500).json({ error: error.meesage })
+
+    }
+}
