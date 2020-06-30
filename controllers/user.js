@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const User = require('../models/User')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 
 exports.registerUser = async (req, res) => {
@@ -44,8 +45,13 @@ exports.userLogin = async (req, res) => {
         const user = await User.find({ username: req.body.username })
         if (user) {
             const result = await bcrypt.compare(req.body.password, user.password)
-            if (result)
-                res.status(200).json({ message: 'user logged successfully logged in' })
+            if (result) {
+                const generatedToken = await jwt.sign({
+                    username: user.username,
+                    _id: user._id
+                }, process.env.JWT_SECRET_KEY)
+                res.status(200).json({ message: 'user logged successfully logged in', token: generatedToken })
+            }
             else
                 res.status(401).json({ message: 'Authentification failed' })
 
