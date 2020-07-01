@@ -19,6 +19,7 @@ export class UserService {
         if (this.token) this.socket.emit('connectuser', this.token);
 
     }
+
     userRegistration(data) {
 
         return this.http.post('http://localhost:5000/user', data, {
@@ -46,6 +47,17 @@ export class UserService {
         let observable = new Observable<{ newuser: {} }>(
             (observer) => {
                 this.socket.on('useradded', (data) => {
+                    observer.next(data);
+                });
+                return () => this.socket.disconnect();
+            }
+        );
+        return observable;
+    }
+    newMessage() {
+        let observable = new Observable(
+            (observer) => {
+                this.socket.on('send-message', (data) => {
                     observer.next(data);
                 });
                 return () => this.socket.disconnect();

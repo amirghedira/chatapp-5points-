@@ -15,13 +15,14 @@ export class loginComponent implements OnInit {
     password: string;
     constructor(private UserService: UserService, private router: Router) { }
     ngOnInit() {
-
+        if (localStorage.getItem('token'))
+            this.router.navigate(['/chat'])
     }
     onConnect() {
         this.UserService.userLogin(this.username, this.password).subscribe(((response: any) => {
-            console.log(response.body)
             localStorage.setItem('token', response.body.token)
-            this.router.navigate(['/main']);
+            this.UserService.setSesstion()
+            this.router.navigate(['/chat']);
         }), (error) => {
             Swal.fire({
                 icon: 'error',

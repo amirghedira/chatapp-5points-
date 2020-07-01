@@ -6,9 +6,7 @@ import { Observable } from 'rxjs';
 export class MessageService {
 
     token: string;
-    socket: any;
     constructor(private http: HttpClient) {
-        this.socket = io('http://localhost:5000');
         this.setSesstion()
 
     }
@@ -30,16 +28,5 @@ export class MessageService {
             headers: headers
         })
 
-    }
-    newMessage() {
-        let observable = new Observable<{ newmessage: {} }>(
-            (observer) => {
-                this.socket.on('send-message', (data) => {
-                    observer.next(data);
-                });
-                return () => this.socket.disconnect();
-            }
-        );
-        return observable;
     }
 }

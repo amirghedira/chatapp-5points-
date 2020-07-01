@@ -31,6 +31,7 @@ server.listen(process.env.PORT || 5000, () => {
             const userindex = ConnectedUsers.findIndex(connecteduser => {
                 return connecteduser.userid === data.userid
             })
+            console.log(ConnectedUsers[userindex])
             if (userindex >= 0)
                 socket.broadcast.to(ConnectedUsers[userindex].socketid).emit('send-message', data.message)
         })

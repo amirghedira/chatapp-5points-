@@ -18,18 +18,12 @@ export const AppRoutes: Routes = [
 
     },
     {
-        path: 'home',
-        component: AppComponent,
-
-    },
-    {
-        path: 'main',
+        path: 'chat',
         component: mainPageComponent,
 
     },
-
     {
         path: '**',
-        redirectTo: 'home',
+        redirectTo: 'login',
     },
 ];

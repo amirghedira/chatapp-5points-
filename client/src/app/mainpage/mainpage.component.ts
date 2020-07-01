@@ -21,6 +21,12 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.UserService.newUserAdded().subscribe((newuser) => {
             this.users = [...this.users, newuser]
         });
+        this.UserService.newMessage().subscribe((newMessage) => {
+            this.conversationMsgs.push(newMessage)
+            console.log(newMessage)
+
+        });
+
     }
 
     ngOnInit() {
