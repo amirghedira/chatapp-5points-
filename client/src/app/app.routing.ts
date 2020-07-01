@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { registerComponent } from '../app/register/register.component'
+import { signUpComponent } from './signup/signup.component'
 import { AppComponent } from './app.component';
 import { loginComponent } from './login/login.component';
 import { mainPageComponent } from './mainpage/mainpage.component';
@@ -8,8 +8,8 @@ import { mainPageComponent } from './mainpage/mainpage.component';
 export const AppRoutes: Routes = [
 
     {
-        path: 'register',
-        component: registerComponent,
+        path: 'signup',
+        component: signUpComponent,
 
     },
     {

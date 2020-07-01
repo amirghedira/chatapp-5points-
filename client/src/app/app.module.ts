@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { registerComponent } from './register/register.component';
+import { signUpComponent } from './signup/signup.component';
 import { loginComponent } from './login/login.component';
 import { mainPageComponent } from './mainpage/mainpage.component';
 import { UserService } from './service/user.service';
@@ -13,7 +13,7 @@ import { NavbarComponent } from './navbar/navbar.component';
 
 @NgModule({
     declarations: [
-        AppComponent, registerComponent, loginComponent, mainPageComponent, NavbarComponent
+        AppComponent, signUpComponent, loginComponent, mainPageComponent, NavbarComponent
     ],
     imports: [
         BrowserModule,

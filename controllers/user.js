@@ -29,7 +29,6 @@ exports.registerUser = async (req, res) => {
 }
 
 exports.getUserBytoken = async (req, res) => {
-
     try {
         const user = await User.findOne({ _id: req.user._id })
         res.status(200).json({ user: user })

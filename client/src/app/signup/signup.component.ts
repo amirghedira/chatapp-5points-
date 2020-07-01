@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import Swal from 'sweetalert2'
 import { UserService } from '../service/user.service';
 @Component({
-    selector: 'app-register',
-    templateUrl: './register.component.html',
-    styleUrls: ['./register.component.css'],
+    selector: 'app-signup',
+    templateUrl: './signup.component.html',
+    styleUrls: ['./signup.component.css'],
 })
 
-export class registerComponent implements OnInit {
+export class signUpComponent implements OnInit {
 
     constructor(private userService: UserService) { }
     username: string;

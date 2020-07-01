@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import * as io from 'socket.io-client';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 @Injectable()
 export class UserService {
 
     token: string;
     socket: any;
-
+    private userCon = new BehaviorSubject(null);
+    userConnected = this.userCon.asObservable();
     constructor(private http: HttpClient) {
         this.socket = io('http://localhost:5000');
         this.setSesstion()
@@ -16,7 +17,8 @@ export class UserService {
 
     setSesstion() {
         this.token = localStorage.getItem('token')
-        if (this.token) this.socket.emit('connectuser', this.token);
+        if (this.token) this.socket.emit('connectuser', this.token)
+
 
     }
 
@@ -43,6 +45,9 @@ export class UserService {
             observe: 'response',
         })
     }
+    login(user: any) {
+        this.userCon.next(user);
+    }
     newUserAdded() {
         let observable = new Observable<{ newuser: {} }>(
             (observer) => {
@@ -64,6 +69,11 @@ export class UserService {
             }
         );
         return observable;
+    }
+
+    disconnectUser() {
+        this.token = null;
+        localStorage.clear()
     }
 
 
