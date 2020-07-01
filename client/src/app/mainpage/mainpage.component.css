@@ -39,7 +39,6 @@
   font-weight: 700;
 }
 
-
 .username-message {
 
   margin-right: 5px;
@@ -238,6 +237,7 @@
 .conversation-container {
   float: left;
   width: 100%;
+  padding-top: 20px;
   height: 650px;
   overflow-y: scroll;
 }
@@ -289,6 +289,10 @@
 .convo-box.pull-right .convo-area>span {
   float: right;
   width: auto;
+}
+
+.flex-to-fill {
+  flex: 1;
 }
 
 .convo-area>span {

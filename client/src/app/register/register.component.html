@@ -42,12 +42,12 @@
           Reenter password
         </span>
         <div class="wrap-input100 validate-input m-b-36">
-          <input class="input100" type="text" name="repassword" id="repassword" [(ngModel)]="repassword">
+          <input class="input100" type="password" name="repassword" id="repassword" [(ngModel)]="repassword">
           <span class="focus-input100"></span>
         </div>
 
         <div class="container-login100-form-btn buttonform">
-          <button class="login100-form-btn loginbtn">
+          <button class="login100-form-btn loginbtn" (click)="registerUser()">
             Register
           </button>
         </div>

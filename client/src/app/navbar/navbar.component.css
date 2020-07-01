@@ -1,0 +1,13 @@
+.main-nav {
+
+  margin: 0;
+}
+
+.control-form {
+  justify-content: flex-end;
+}
+
+.nav-control {
+  display: flex;
+  align-items: center;
+}

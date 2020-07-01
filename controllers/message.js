@@ -1,20 +1,21 @@
 const Message = require('../models/Message')
-const User = require('../models/User')
-
+const io = require('socket.io-client')
+const socket = io('http://localhost:5000')
 
 exports.sendMessage = async (req, res) => {
 
     const newmessage = new Message({
-        from: req.body.sourceID,
-        to: req.body.destinationID,
+        from: req.user._id,
+        to: req.body.destination,
         date: new Date().toISOString(),
         content: req.body.content
     })
 
     try {
 
-        await newmessage.save()
-        res.status(201).json({ message: 'message sent' })
+        const newMessage = await newmessage.save()
+        socket.emit('send-message', { userid: newmessage.to, message: newMessage })
+        res.status(201).json({ newMessage: newMessage })
     } catch (error) {
         res.status(500).json({ error: error.message })
     }
@@ -23,10 +24,10 @@ exports.sendMessage = async (req, res) => {
 }
 
 exports.getConversationMessages = async (req, res) => {
-
     try {
-        const conversationMsgs = await Message.find({ $and: [{ from: req.body.source }, { to: req.body.destination }] })
-        res.status(200).json({ messages: conversationMsgs })
+        const messages = await Message.find()
+        const conversationMsgs = messages.filter(message => { return (message.from == req.user._id && message.to == req.params.participant) || (message.to == req.user._id && message.from == req.params.participant) })
+        res.status(200).json({ conversationMsgs: conversationMsgs })
 
     } catch (error) {
 
