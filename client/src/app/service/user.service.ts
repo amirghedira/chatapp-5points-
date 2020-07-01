@@ -2,16 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import * as io from 'socket.io-client';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { Socket } from 'ngx-socket-io';
+
 
 @Injectable()
 export class UserService {
 
     token: string;
-    socket: any;
     private userCon = new BehaviorSubject(null);
     userConnected = this.userCon.asObservable();
-    constructor(private http: HttpClient) {
-        this.socket = io('http://localhost:5000');
+    constructor(private http: HttpClient, private socket: Socket) {
         this.setSesstion()
     }
 

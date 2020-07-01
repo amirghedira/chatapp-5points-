@@ -10,12 +10,17 @@ import { UserService } from './service/user.service';
 import { MessageService } from './service/message.service';
 import { HttpClientModule } from '@angular/common/http';
 import { NavbarComponent } from './navbar/navbar.component';
+import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
+const config: SocketIoConfig = { url: 'http://localhost:5000' };
+
 
 @NgModule({
     declarations: [
         AppComponent, signUpComponent, loginComponent, mainPageComponent, NavbarComponent
     ],
+
     imports: [
+        SocketIoModule.forRoot(config),
         BrowserModule,
         AppRoutingModule,
         FormsModule,
