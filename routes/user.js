@@ -10,6 +10,7 @@ router.get('/socket', (req, res) => {
     res.status(200).json({ message: 'done' })
 })
 router.post('/', userController.registerUser)
+router.get('/search-users', checkAuth, userController.searchUsers)
 router.get('/', checkAuth, userController.getUsers)
 router.get('/bytoken', checkAuth, userController.getUserBytoken)
 router.post('/login', userController.userLogin)

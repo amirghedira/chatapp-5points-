@@ -19,6 +19,7 @@ server.listen(process.env.PORT || 5000, () => {
                         ConnectedUsers.push({ userid: user._id, socketid: socket.id })
 
                 }
+
             } catch (error) {
                 console.log('error')
             }
@@ -30,8 +31,9 @@ server.listen(process.env.PORT || 5000, () => {
             const userindex = ConnectedUsers.findIndex(connecteduser => {
                 return connecteduser.userid === data.userid
             })
+
             if (userindex >= 0)
-                socket.broadcast.to(ConnectedUsers[userindex].socketid).emit('send-message', data.message)
+                socket.broadcast.to(ConnectedUsers[userindex].socketid).emit('send-message', data.conversation)
         })
         socket.on('users', () => {
             console.log(ConnectedUsers)

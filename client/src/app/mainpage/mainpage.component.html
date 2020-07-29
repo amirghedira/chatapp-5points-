@@ -1,26 +1,22 @@
 <section *ngIf="!loading" class="chat">
   <div class="container-fluid">
-    <div class="row">
+    <div class="row" style="background-color: white;">
 
       <div class="messages-box">
         <div class="row">
           <div class="col-lg-4 col-md-12 no-pdd">
             <div class="messages-container">
-
               <div class="message-header">
                 <div class="message-title">
-                  <h4>Messages</h4>
-                </div>
-                <!--/ message-title-->
-                <div class="search-area">
-                  <div class="input-field">
-                    <input placeholder="Search" type="text">
-                    <i class="fa fa-search"></i>
+                  <div class="search-area">
+                    <div class="input-field">
+                      <input placeholder="Search" type="text" [(ngModel)]="searchTerms" [ngbTypeahead]="search" />
+                      <i class="fa fa-search"></i>
+                    </div>
                   </div>
                 </div>
-                <!--/ search-area-->
+
               </div>
-              <!--/ message-header-->
               <div class="messages-list" *ngIf="!checkUserAvailabe()">
                 <ul>
                   <li>
@@ -29,34 +25,98 @@
                       <div class="user-message-info">
                         <div class="user-display">
 
-                          <h4>No users available</h4>
+                          <h4>No conversations available</h4>
                         </div>
                       </div>
                     </div>
                   </li>
                 </ul>
               </div>
-              <div class="messages-list" *ngIf="checkUserAvailabe()">
-                <ul>
-                  <li *ngFor="let user of users">
-                    <div class=" user-message-details" (click)="onOpenConvers(user)">
+              <div class="messages-list" *ngIf="checkUserAvailabe() && !loading && searchTerms.length==0">
+                <ul style="list-style-type: none;" *ngFor="let conversation of userConversations">
+                  <li (mouseenter)="setFocusConversation(conversation._id,true)"
+                    (mouseleave)="setFocusConversation(conversation._idfalse)"
+                    [ngClass]="conversation._id == userConversations[conversationIndex]?._id ? 'message-item active' : 'message-item'">
+                    <div class="user-message-details" (click)="onOpenConvers(conversation._id)">
                       <div class="user-message-img">
-                        <img src="assets/img/users/9.jpg" class="img-responsive img-circle" alt="">
+                        <span class="online-status on-picture"></span>
+                        <img src="assets/img/users/9.jpg" class="img-circle" alt="">
                       </div>
                       <div class="user-message-info">
-                        <div class="user-display">
+                        <div style="align-self: center;">
+                          <div class="user-display">
 
-                          <h4>{{user.name}} {{user.surname}}</h4>
+                            <h4 [ngClass]="lastMessageSeen(conversation._id) ? 'read-userinfo' : 'not-read-userinfo'">
+                              {{conversation.users[indexUserDest(conversation._id)].name}}
+                              {{conversation.users[indexUserDest(conversation._id)].surname}}</h4>
+                          </div>
+
+                          <p [ngClass]="lastMessageSeen(conversation._id) ? 'message-field-read' : 'message-field-not-read'"
+                            *ngIf="conversation.messages.length>0">
+                            <span style="font-weight: 400;"
+                              *ngIf="conversation.messages[conversation.messages.length-1].sender == connectedUser._id">Vous:</span>
+                            {{conversation.messages[conversation.messages.length-1].content}}<span
+                              class="message-time">. 15:55</span></p>
+
+
+                          <p [ngClass]="lastMessageSeen(conversation._id) ? 'message-field-read' : 'message-field-not-read'"
+                            *ngIf="conversation.messages.length==0">
+                            say hello to {{conversation.users[indexUserDest(conversation._id)].surname}}<span
+                              class="message-time">. 15:55</span></p>
+
                         </div>
-                        <p>CONTENT TO TAKE</p>
-                        <span class="time-posted">1:55 PM</span>
+                        <div *ngIf="focusConversation.id==conversation._id && focusConversation.status"
+                          class="notification-container">
+                          <div class="dropdown">
+                            <i class=" fas fa-ellipsis-h" id="dropdownMenuButton" data-toggle="dropdown"></i>
+
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                              <a class="dropdown-item" href="#">Action</a>
+                              <a class="dropdown-item" href="#">Another action</a>
+                              <a class="dropdown-item" href="#">Something else here</a>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div *ngIf="focusConversation.id!=conversation._id || !focusConversation.status"
+                          class="notification-container">
+
+                          <span *ngIf="!lastMessageSeen(conversation._id)" class="message-notification"></span>
+                        </div>
                       </div>
                       <!--/ user-message-info -->
                     </div>
                     <!--/ user-message-details -->
                   </li>
+                </ul>
+              </div>
 
+              <div class="messages-list" *ngIf="!loadingSearch && checkUserAvailabe() && searchTerms.length>0">
+                <ul style="list-style-type: none;" *ngFor="let user of searchedUsers">
+                  <li class="message-item">
+                    <div class="user-message-details" (click)="createdConversation(user._id)">
+                      <div class="user-message-img">
+                        <span class="online-status on-picture"></span>
+                        <img src="assets/img/users/9.jpg" class="img-circle" alt="">
+                      </div>
+                      <div class="user-message-info">
+                        <div style="align-self: center;">
+                          <div class="user-display">
 
+                            <h4 class="not-read-userinfo">{{user.name}}
+                              {{user.surname}}</h4>
+                          </div>
+
+                          <!-- <p class="message-field-not-read">
+                            {{conversation.messages[conversation.messages.length-1].content}}<span
+                              class="message-time">. 15:55</span></p> -->
+
+                        </div>
+                      </div>
+                      <!--/ user-message-info -->
+                    </div>
+                    <!--/ user-message-details -->
+                  </li>
                 </ul>
               </div>
               <!--/ messages-list -->
@@ -66,59 +126,83 @@
           </div>
           <!--/ col-lg-4 -->
 
-          <div class="col-lg-8 col-md-12 pd-right-none pd-left-none">
+          <div *ngIf="selectedConversation && !loadingMessages" class="col-lg-8 col-md-12 pd-right-none pd-left-none">
             <div class="conversation-box">
-
               <div class="conversation-header">
                 <div class="user-message-details">
                   <div class="user-message-img">
                     <img src="assets/img/users/6.jpg" class="img-responsive img-circle" alt="">
                   </div>
-                  <div class="user-message-info">
-                    <h4 class="user-name">{{currentUserDest.name}} {{currentUserDest.surname}}</h4>
-                    <p>Online</p>
+                  <div class="user-message-header">
+                    <h4 class="user-name">{{userConversations[conversationIndex].users[destinationUser].name}}
+                      {{userConversations[conversationIndex].users[destinationUser].surname}}
+                    </h4>
+                    <div style="display: flex; align-items: center;">
+                      <span class="online-status"></span>
+                      <h5 style="padding-left: 10px; margin: 0; font-weight: 400;color: #999999;">online</h5>
+                    </div>
 
                   </div>
+                  <i class="fas fa-exclamation-circle user-profile-icon"></i>
                   <!--/ user-message-info -->
                 </div>
                 <!--/ user-message-details -->
-                <a href="#" title=""><i class="fa fa-ellipsis-v"></i></a>
               </div>
               <!--/ conversation-header -->
 
               <div class="conversation-container">
-                <div *ngFor="let message of conversationMsgs">
-                  <div *ngIf="checkSenderMsg(message.from)" class="convo-box convo-left">
-                    <div class="convo-area convo-left">
-                      <div class="convo-message">
-                        <p>{{message.content}}</p>
-                      </div>
-                      <!--/ convo-message-->
-                      <span>{{message.date}}</span>
-                    </div>
-                    <!--/ convo-area -->
-                    <div class="convo-img">
-                      <img src="assets/img/users/6.jpg" alt="" class="img-responsive img-circle">
-                    </div>
-                    <!--/ convo-img -->
+                <div style="padding-top: 30px;" *ngIf="userConversations[conversationIndex].messages.length==0">
+                  <div style="display: flex;justify-content: center;">
+                    <span class="time-posted" style="color: #999999;">1:55 PM</span>
                   </div>
-                  <!--/ convo-box -->
+                  <div style="display: flex;justify-content: center;">
+                    <div style="display: flex;">
+                      <img src="assets/img/users/6.jpg" style="border: 2px solid white;" class="image-in-container"
+                        alt="">
+                      <img src="assets/img/users/6.jpg" style="margin-left: -11px; border: 2px solid white;"
+                        class="image-in-container" alt="">
+                    </div>
 
-                  <div *ngIf="!checkSenderMsg(message.from)" class="convo-box pull-right">
-                    <div class="convo-area">
-                      <div class="convo-message">
-                        <p>{{message.content}}</p>
-                      </div>
-                      <!--/ convo-message-->
-                      <span>{{message.date}}</span>
-                    </div>
-                    <!--/ convo-area -->
-                    <div class="convo-img">
-                      <img src="assets/img/users/2.jpg" alt="" class="img-responsive img-circle">
-                    </div>
-                    <!--/ convo-img -->
                   </div>
-                  <!--/ convo-box -->
+                  <div style="display: flex;justify-content: center; color: #999999; font-size: 12px;">
+                    Bienvenue à vous deux sur Messenger.
+                  </div>
+                </div>
+                <div *ngIf="userConversations[conversationIndex].messages.length>0">
+                  <div *ngFor="let message of userConversations[conversationIndex].messages">
+                    <div *ngIf=" !checkSenderMsg(message.sender)" class="convo-box convo-left">
+                      <div class="convo-area convo-left">
+                        <div class="convo-message">
+                          <p>{{message.content}}</p>
+                        </div>
+                        <!--/ convo-message-->
+                      </div>
+                      <!--/ convo-area -->
+                      <div class="convo-img">
+                        <img src="assets/img/users/6.jpg" alt="" class="img-responsive img-circle">
+                      </div>
+                      <!--/ convo-img -->
+                    </div>
+                    <!--/ convo-box -->
+
+                    <div *ngIf="checkSenderMsg(message.sender)" class="convo-box pull-right">
+                      <div class="convo-area convo-right">
+                        <div class="convo-message">
+                          <p>{{message.content}}</p>
+                        </div>
+                        <span class="time-posted">1:55 PM</span>
+
+                        <!--/ convo-message-->
+                      </div>
+                      <!--/ convo-area -->
+                      <div class="convo-img">
+                        <img src="assets/img/users/2.jpg" alt="" class="img-responsive img-circle">
+                      </div>
+                      <!--/ convo-img -->
+                    </div>
+                    <!--/ convo-box -->
+                  </div>
+
                 </div>
 
                 <!--/ convo-box -->
@@ -128,17 +212,24 @@
               <!--/ conversation-container -->
               <div class="type_messages">
                 <div class="input-field">
-                  <textarea placeholder="Type a new message" name="currentMessage" id="currentMessage"
-                    [(ngModel)]="currentMessage"></textarea>
+                  <i class="fas fa-image send-message-icon" style="font-size: 24px; padding-right: 10px;"></i>
+                  <textarea autosize placeholder="Type a new message" name="currentMessage" id="currentMessage"
+                    (focus)="messageField()" [(ngModel)]="currentMessage"></textarea>
                   <ul class="imoji">
                     <li>
-                      <img src="assets/img/send.png" class="send-image" (click)="onSendMessage()" />
+                      <i *ngIf="currentMessage!=''" class="fas fa-paper-plane send-message-icon"
+                        (click)="onSendMessage()"></i>
+                      <i *ngIf="currentMessage==''" class="fas fa-thumbs-up send-message-icon"></i>
                     </li>
                   </ul>
 
                 </div>
               </div>
 
+            </div>
+          </div>
+          <div *ngIf="!selectedConversation" class="col-lg-8 col-md-12 pd-right-none pd-left-none">
+            <div class="conversation-box">
             </div>
           </div>
 

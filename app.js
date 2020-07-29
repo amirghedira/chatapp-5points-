@@ -2,7 +2,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const userRoutes = require('./routes/user')
-const messageRoutes = require('./routes/message')
+const conversationRoutes = require('./routes/conversation')
 const bodyParser = require('body-parser')
 
 const app = express()
@@ -17,7 +17,7 @@ mongoose.connect(process.env.MONGO_INFO, {
 
 
 app.use('/user', userRoutes)
-app.use('/message', messageRoutes)
+app.use('/conversation', conversationRoutes)
 
 
 

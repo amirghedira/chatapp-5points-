@@ -19,7 +19,6 @@ exports.registerUser = async (req, res) => {
         })
         const newUser = await newuser.save()
         socket.emit('useradded', newUser)
-
         res.status(201).json({ message: 'user successfully created' })
 
     } catch (error) {
@@ -79,4 +78,17 @@ exports.userLogin = async (req, res) => {
         res.status(500).json({ error: error.meesage })
 
     }
+}
+
+
+exports.searchUsers = async (req, res) => {
+    try {
+        const users = await User.find({ $or: [{ username: { $regex: req.query.term } }, { name: { $regex: req.query.term } }, { surname: { $regex: req.query.term } }] }).exec()
+
+        res.status(200).json({ users: users })
+
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+
 }

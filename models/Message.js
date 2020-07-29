@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
-    from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    to: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    conversation: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' },
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     date: { type: Date, required: true },
+    seen: { type: Boolean, required: true, default: false },
     content: { type: String, required: true },
 
 })
