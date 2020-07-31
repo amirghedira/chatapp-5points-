@@ -11,6 +11,7 @@ router.get('/socket', (req, res) => {
 })
 router.post('/', userController.registerUser)
 router.get('/search-users', checkAuth, userController.searchUsers)
+router.patch('/disconnect', checkAuth, userController.disconnectUser)
 router.get('/', checkAuth, userController.getUsers)
 router.get('/bytoken', checkAuth, userController.getUserBytoken)
 router.post('/login', userController.userLogin)

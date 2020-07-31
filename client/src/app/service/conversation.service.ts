@@ -9,7 +9,7 @@ export class ConversationService {
 
     }
     setSesstion() {
-        this.token = localStorage.getItem('token')
+        this.token = sessionStorage.getItem('token')
     }
 
     sendMessage(conversationId: string, content: string) {
@@ -49,9 +49,9 @@ export class ConversationService {
         })
 
     }
-    markMessageAsRead(messageId: string) {
+    markMessageAsRead(userDest: string, messageId: string) {
         const headers = new HttpHeaders().set('Authorization', this.token);
-        return this.http.patch('http://localhost:5000/conversation/message/' + messageId, {
+        return this.http.patch('http://localhost:5000/conversation/message/' + messageId, { userDest }, {
             headers: headers
         })
     }

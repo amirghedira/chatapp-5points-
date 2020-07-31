@@ -63,10 +63,13 @@
   margin-left: 5px;
 }
 
-.user-profile-icon {
-  font-size: 30px;
+.user-profile-info {
+  font-size: 25px;
   color: rgb(0, 153, 255);
-  padding-right: 40px;
+  margin-right: 40px;
+  padding: 5px;
+  border-radius: 50%;
+  background-color: rgba(0, 153, 255, 0.2);
 }
 
 .search-area .input-field input {
@@ -213,11 +216,12 @@
 .message-field-not-read {
 
   font-weight: bold;
+  padding-left: 5px;
+  max-width: 60%;
   color: black !important;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  width: 250px;
 
 }
 
@@ -231,6 +235,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #999999;
+  padding-left: 5px;
+  max-width: 60%;
   overflow: hidden;
   font-size: 17px;
   margin-top: -5px;
@@ -281,6 +287,12 @@
 
 }
 
+.seen-message-image {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
 .image-in-container {
   width: 40px;
   height: 40px;
@@ -319,11 +331,21 @@
   float: left;
   width: 100%;
   background-color: #fff;
-  position: relative;
   border-top: 1px solid #eaeaea;
   border-right: 1px solid #eaeaea;
   border-left: 1px solid #eaeaea;
 
+}
+
+.user-name {
+
+  margin-bottom: 0;
+}
+
+.info-button {
+  background-color: red;
+  border-radius: 50%;
+  padding: 10px;
 }
 
 .conversation-header {
@@ -341,51 +363,121 @@
 .conversation-container {
   float: left;
   width: 100%;
-  padding-top: 20px;
+  padding-top: 70px;
   height: 71vh;
   overflow-y: auto;
 }
 
 
 .convo-box {
-  float: left;
-  width: 100%;
-  position: relative;
-  margin-bottom: 15.5px;
+  display: flex;
+  align-items: center;
+  padding-bottom: 20px;
 }
 
-.convo-box.pull-right .convo-area {
-  padding-left: 0;
-  padding-right: 85px;
+.convo-right {
+  justify-content: flex-end;
 }
 
-.convo-area {
-  float: left;
-  width: auto;
-  padding-left: 85px;
+.convo-left {
+  justify-content: flex-start;
 }
 
 
-.convo-message {
-  float: left;
-  -webkit-border-radius: 15px;
-  -moz-border-radius: 15px;
-  -ms-border-radius: 15px;
-  -o-border-radius: 15px;
-  border-radius: 15px;
-  width: 100%;
+.convo-area-right {
+  display: flex;
+  justify-content: flex-start;
+  padding-right: 20px;
 }
 
-.convo-message>p {
-  float: right;
-  max-width: 60%;
-  margin-top: 10px;
+.convo-area-left {
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 20px;
+}
+
+
+.convo-message-left {
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+}
+
+.convo-message-right {
+  display: flex;
+  align-items: center;
+  padding-right: 20px;
+}
+
+.tooltiptext-left::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-right: 5px solid black;
+  border-bottom: 5px solid transparent;
+  margin-left: 5px;
+}
+
+.tooltiptext-right::after {
+  width: 0;
+  content: '';
+  height: 0;
+  border-top: 5px solid transparent;
+  border-left: 5px solid black;
+  border-bottom: 5px solid transparent;
+  margin-right: 5px;
+}
+
+.tooltiptext-left>p {
+
+  background-color: black;
+  padding: 5px 10px 5px 10px;
+  margin: 0;
+  font-size: 13px;
+  color: white;
+}
+
+.tooltiptext-left {
+  visibility: hidden;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.convo-message-left:hover .tooltiptext-left {
+  visibility: visible;
+}
+
+.tooltiptext-right>p {
+  background-color: black;
+  padding: 5px 10px 5px 10px;
+  margin: 0;
+  font-size: 13px;
+  color: white;
+}
+
+.tooltiptext-right {
+  visibility: hidden;
+  display: flex;
+  align-items: center;
+  text-align: center;
+
+}
+
+.convo-message-right:hover .tooltiptext-right {
+  visibility: visible;
+}
+
+.convo-message-right .convo-message-content>p {
+  margin: 0px;
+  padding: 5px 10px 5px 10px;
+  max-width: 400px;
   background-color: rgb(0, 153, 255);
   color: white;
   font-weight: 400;
   font-size: 15px;
   line-height: 22px;
-  padding: 10px 15px 10px 15px;
   -webkit-border-radius: 20px;
   -moz-border-radius: 20px;
   -ms-border-radius: 20px;
@@ -393,29 +485,29 @@
   border-radius: 20px;
 }
 
-.convo-box.pull-right .convo-area>span {
-  float: right;
-  width: auto;
+
+.convo-message-left>p {
+  margin: 0px;
+  max-width: 300px;
+  padding: 10px;
+  margin: 0;
+  padding: 5px 10px 5px 10px;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  -ms-border-radius: 20px;
+  -o-border-radius: 20px;
+  border-radius: 20px;
+  background-color: #f1f0f0;
+  white-space: pre-line;
+  color: rgba(0, 0, 0, 1);
+
 }
 
 .flex-to-fill {
   flex: 1;
 }
 
-.convo-area>span {
-  color: #b2b2b2;
-  color: #aaa;
-  font-size: 13px;
-  float: left;
-  width: 100%;
-  margin-top: 7px;
-}
 
-.convo-box.pull-right .convo-img {
-  left: auto;
-  right: 20px;
-  bottom: 25px;
-}
 
 .convo-img {
   position: absolute;
@@ -424,25 +516,9 @@
   width: 50px;
 }
 
-.convo-area.convo-left .convo-message>p {
-  min-width: fit-content;
-  margin-top: -10px;
-  max-width: 300px;
-  background-color: #f1f0f0;
-  white-space: pre-line;
-  color: rgba(0, 0, 0, 1);
-  float: left;
-
-}
-
-.convo-left {}
 
 .convo-right {
   width: 100%;
-}
-
-.convo-box.convo-left .convo-img {
-  bottom: 13px;
 }
 
 
@@ -476,6 +552,7 @@
   padding-left: 20px;
   border-radius: 25px;
   padding-top: 10px;
+  padding-bottom: 10px;
   width: 100%;
 }
 
@@ -670,32 +747,6 @@
 /* Kafe Button Styles
   ---------------------------------------------------------------------- */
 
-.kafe-btn {
-  display: inline-block;
-  margin-bottom: 0;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
-  line-height: 1.4;
-  cursor: pointer;
-  background-image: none;
-  border: 1px solid transparent;
-
-  border-radius: 4px;
-
-  khtml-user-select: none;
-  webkit-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  user-select: none;
-
-  -moz-transition: background, 0.3s;
-  -0-transition: background, 0.3s;
-  webkit-transition: background, 0.3s;
-  transition: background, 0.3s;
-}
 
 .kafe-btn-default {
   letter-spacing: 1px;
@@ -869,7 +920,7 @@
 
   float: right;
   max-width: 60%;
-  color: black;
+  color: #999999;
   font-weight: 400;
   font-size: 15px;
   margin-top: -20px !important;
@@ -942,90 +993,9 @@ body.greybg {
 /* ------------------------------------------------------------------- */
 /* Section Section
   ---------------------------------------------------------------------- */
-.section-padding {
-  padding: 80px 0;
-}
-
-.section-title h1 {
-  font-size: 28px;
-  color: #00C4CF;
-  text-align: center;
-  text-transform: uppercase;
-  margin: 15px 0px 5px 0px;
-  font-weight: 700;
-}
-
-.section-title-fluffs h1 {
-  font-size: 18px;
-  color: #505050;
-  text-align: center;
-  text-transform: uppercase;
-  margin: 0 0px;
-}
-
-.section-title-new h1 {
-  font-size: 28px;
-  color: #00C4CF;
-  text-align: center;
-  text-transform: uppercase;
-  margin: 5px 0px 25px 0px;
-  font-weight: 700;
-}
-
-.section-title-left h1 {
-  font-size: 16px;
-  color: #00C4CF !important;
-  text-align: left;
-  text-transform: uppercase;
-  margin: 30px 0 40px 0px;
-}
-
-@media(max-width:768px) {
-  .section-title h1 {
-    font-size: 18px
-  }
-}
-
 /* ------------------------------------------------------------------- */
 /* Separator Section
   ---------------------------------------------------------------------- */
-.separator_wrapper {
-  margin-bottom: 30px;
-}
-
-.separator_wrapper::after,
-.separator_wrapper::before {
-  background-color: #f96a74;
-  display: inline-block;
-  vertical-align: middle;
-  content: "";
-  width: 70px;
-  height: 1px;
-  margin-top: -6px;
-}
-
-
-.separator_first_circle {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 3px solid #f96a74;
-  -moz-border-radius: 7px;
-  -webkit-border-radius: 7px;
-  border-radius: 7px;
-}
-
-separator_second_circle {
-  float: left;
-  width: 4px;
-  height: 4px;
-  background-color: #f96a74;
-  margin-top: 2px;
-  margin-left: 2px;
-  -moz-border-radius: 4px;
-  -webkit-border-radius: 4px;
-  border-radius: 4px;
-}
 
 .m-15 {
   margin-bottom: 15px;

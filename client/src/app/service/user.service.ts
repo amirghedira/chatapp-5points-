@@ -15,7 +15,7 @@ export class UserService {
     }
 
     setSesstion() {
-        this.token = localStorage.getItem('token')
+        this.token = sessionStorage.getItem('token')
         if (this.token) this.socket.emit('connectuser', this.token)
 
 
@@ -69,11 +69,44 @@ export class UserService {
         );
         return observable;
     }
-
-    disconnectUser() {
-        this.token = null;
-        localStorage.clear()
+    seenMessage() {
+        let observable = new Observable(
+            (observer) => {
+                this.socket.on('seen-message', (data) => {
+                    observer.next(data);
+                });
+                return () => this.socket.disconnect();
+            }
+        );
+        return observable;
     }
-
-
+    userHasConnected() {
+        let observable = new Observable(
+            (observer) => {
+                this.socket.on('user-connected', (data) => {
+                    console.log(data)
+                    observer.next(data);
+                });
+                return () => this.socket.disconnect();
+            }
+        );
+        return observable;
+    }
+    userHasDisconnected() {
+        let observable = new Observable(
+            (observer) => {
+                this.socket.on('user-disconnected', (data) => {
+                    observer.next(data);
+                });
+                return () => this.socket.disconnect();
+            }
+        );
+        return observable;
+    }
+    disconnectUser() {
+        const headers = new HttpHeaders().set('Authorization', this.token);
+        this.token = null;
+        sessionStorage.clear()
+        return this.http.patch('http://localhost:5000/user/disconnect', null, { headers: headers })
+    }
 }

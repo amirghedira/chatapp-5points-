@@ -60,9 +60,15 @@ exports.getUserConversations = async (req, res) => {
 exports.markAsSeenMsg = async (req, res) => {
 
     try {
-        await Message.updateOne({ _id: req.params.id }, { $set: { seen: true } })
+        const newSeenDate = new Date().toISOString()
+        const message = await Message.findById(req.params.id);
+        message.seen = { state: true, seenDate: newSeenDate }
+        await message.save()
+
+        socket.emit('seen-message', { userid: req.body.userDest, message })
         res.status(200).json({ message: 'message has been seen' })
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: error.message })
 
     }

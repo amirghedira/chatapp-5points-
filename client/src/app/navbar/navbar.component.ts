@@ -33,9 +33,11 @@ export class NavbarComponent implements OnInit {
 
     }
     onDisconnect() {
-        this.UserService.disconnectUser();
-        this.status = false;
-        this.router.navigate(['/login'])
+        this.UserService.disconnectUser()
+            .subscribe(res => {
+                this.status = false;
+                this.router.navigate(['/login'])
+            })
     }
 
 }

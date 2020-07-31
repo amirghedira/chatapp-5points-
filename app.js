@@ -4,6 +4,8 @@ const cors = require('cors')
 const userRoutes = require('./routes/user')
 const conversationRoutes = require('./routes/conversation')
 const bodyParser = require('body-parser')
+const io = require('socket.io-client')
+const socket = io('http://localhost:5000')
 
 const app = express()
 app.use(cors())
@@ -15,9 +17,12 @@ mongoose.connect(process.env.MONGO_INFO, {
     useNewUrlParser: true
 })
 
-
 app.use('/user', userRoutes)
 app.use('/conversation', conversationRoutes)
+app.get('/status', (req, res) => {
+    socket.emit('showUsers', null)
+    res.send('done')
+})
 
 
 

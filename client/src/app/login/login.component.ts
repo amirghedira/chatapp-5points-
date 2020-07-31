@@ -17,12 +17,12 @@ export class loginComponent implements OnInit {
     password: string;
     constructor(private UserService: UserService, private ConversationService: ConversationService, private router: Router) { }
     ngOnInit() {
-        if (localStorage.getItem('token'))
+        if (sessionStorage.getItem('token'))
             this.router.navigate(['/chat'])
     }
     onConnect() {
         this.UserService.userLogin(this.username, this.password).subscribe(((response: any) => {
-            localStorage.setItem('token', response.body.token)
+            sessionStorage.setItem('token', response.body.token)
             this.UserService.setSesstion()
             this.ConversationService.setSesstion()
             this.UserService.login(response.body.token)
