@@ -4,7 +4,8 @@
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <div class="collapse navbar-collapse nav-control" id="navbarSupportedContent">
+  <div class="collapse navbar-collapse nav-control" style="display:flex;align-items: center;"
+    id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
         <a class="nav-link" [routerLink]="['/home']">Home <span class="sr-only">(current)</span></a>
@@ -14,7 +15,17 @@
     <form class="form-inline my-2 my-lg-0 control-form">
       <button *ngIf="!status" class="btn btn-outline-success my-2 my-sm-0" [routerLink]="['/login']">Login</button>
       <button *ngIf="!status" class="btn btn-outline-warning my-2 my-sm-0" [routerLink]="['/signup']">Sign up</button>
-      <button *ngIf="status" class="btn btn-outline-danger my-2 my-sm-0" (click)="onDisconnect()">Disconnect</button>
+      <div *ngIf="status" style="margin-right: 50px;">
+        <div class="dropdown">
+          <button id="dropdownMenuButton" data-toggle="dropdown" style="background-color: transparent;">Amir
+            ghedira</button>
+
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <button class="dropdown-item" href="#">Settings</button>
+            <button class="dropdown-item" (click)="onDisconnect()">Disconnect</button>
+          </div>
+        </div>
+      </div>
 
     </form>
   </div>

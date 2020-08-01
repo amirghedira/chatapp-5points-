@@ -1,4 +1,157 @@
 <section *ngIf="!loading" class="chat">
+
+  <div *ngIf="openBlockMsgModal">
+    <div class="backdrop-container" (click)="onOpenBlockMsgModal(false)">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4 class="user-name">
+          Bloquer les messages
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <p>
+          Vous ne recevrez plus de messages et d’appels de Lotfi dans Messenger.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onOpenBlockMsgModal(false)">Annuler</button>
+          <button class="button-danger">Bloquer les messages</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+
+  <div *ngIf="openIgnoreMessages">
+    <div class="backdrop-container" (click)="onOpenIgnoreMessages(false)">
+
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4 class="user-name">
+          Ignorer cette conversation ?
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <p>
+          Vous ne recevrez pas de notification lorsque Moez vous enverra des messages, et la conversation sera déplacée
+          vers les messages filtrés. Nous n’informerons pas Moez que ses messages ont été ignorés. </p>
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onOpenIgnoreMessages(false)">Annuler</button>
+          <button class="button-danger" style="font-weight: 500;">Ignorer les messages</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+
+  <div *ngIf="openEditPseudoModal">
+    <div class="backdrop-container" (click)="onOpenEditPseudoModal(false)">
+    </div>
+    <div class="pseudo-container">
+      <div class="modal-header">
+        <button class="button-success" (click)="onOpenEditPseudoModal(false)">Annuler</button>
+        <h4 class="user-name" style="font-size: 15px;margin: 0;"> Modifier les pseudos</h4>
+      </div>
+      <div class="users-container">
+
+        <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true)">
+          <img src="assets/img/users/9.jpg" class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;"
+            alt="">
+          <h4 class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
+            lotfi ghedira
+          </h4>
+        </div>
+        <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true)">
+          <img src="assets/img/users/9.jpg" class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;"
+            alt="">
+          <h4 class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
+            lotfi ghedira
+          </h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="openPseudoModal">
+    <div class="backdrop-container" (click)="onOpenPseudoModal(false)">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4 class="user-name">
+          Modifier le pseudo de Moez Lansari
+        </h4>
+        <p>
+          Tous les participants de cette conversation le verront. </p>
+      </div>
+      <div class="modal-content-input">
+        <input class="input-pseudo" type="text" placeholder="Moez lansari" />
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onOpenPseudoModal(false)">Annuler</button>
+          <button class="button-success" style="font-weight:500;">Enregistrer</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+
+  <div *ngIf="openColorsModal">
+    <div class="backdrop-container" (click)="onOpenColorsModal(false)">
+
+    </div>
+
+    <div class="modal-container-colors">
+      <div class="modal-title">
+        <h4 class="user-name">
+          Choisissez une couleur pour cette conversation
+        </h4>
+        <p>
+          Tous les participants de cette conversation le verront. </p>
+      </div>
+      <div>
+        <div class="modal-content-colors">
+          <span class="color-item" style="background-color:rgb(0, 132, 255);"></span>
+          <span class="color-item" style="background-color:rgb(68, 190, 199);"></span>
+          <span class="color-item" style="background-color:rgb(255, 195, 0);"></span>
+          <span class="color-item" style="background-color:rgb(250, 60, 76);"></span>
+
+        </div>
+        <div class="modal-content-colors">
+          <span class="color-item" style="background-color:rgb(214, 150, 187);"></span>
+          <span class="color-item" style="background-color:rgb(19, 207, 19);"></span>
+          <span class="color-item" style="background-color:rgb(255, 126, 41);"></span>
+          <span class="color-item" style="background-color:rgb(230, 133, 133);"></span>
+
+        </div>
+        <div class="modal-content-colors">
+          <span class="color-item" style="background-color:rgb(118, 70, 255);"></span>
+          <span class="color-item" style="background-color:rgb(32, 206, 245);"></span>
+          <span class="color-item" style="background-color:rgb(255, 92, 161);"></span>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onOpenColorsModal(false)">Annuler</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
   <div class="container-fluid">
     <div class="row" style="background-color: white;">
 
@@ -139,6 +292,87 @@
             <!--/ messages-container-->
           </div>
           <!--/ col-lg-4 -->
+          <div *ngIf="selectedProfileInfo" class="col-lg-8 col-md-12 pd-right-none pd-left-none">
+            <div class="conversation-box">
+              <div style="padding-top: 23px;">
+                <div class="user-message-details" style="align-items: center;justify-content: flex-end">
+                  <i class=" fas fa-info-circle user-profile-info-accessed" (click)="showUserInfo(false)"></i>
+                </div>
+              </div>
+              <div class="profile-info-container">
+                <div style="display: flex;justify-content: center;align-items: center;">
+                  <img src="assets/img/users/6.jpg" class="img-responsive img-circle"
+                    style="width: 100px;height: 100px;" alt="">
+                </div>
+                <div style="display: flex;justify-content: center;align-items: center;padding-top: 10px;">
+                  <h4 class="user-name">
+                    {{currentConversation.users[destinationUser].name }}
+                    {{currentConversation.users[destinationUser].surname}}
+                  </h4>
+                </div>
+                <div style="display: flex;justify-content: center;align-items: center;padding-top: 10px;">
+                  <h5 style=" margin: 0; font-weight: 400;color: #999999;">
+                    {{TransformDateOnline(currentConversation.users[destinationUser].connection.lastVisit)}}</h5>
+                </div>
+
+                <div style="display: flex;justify-content: center;align-items: center;padding-top: 20px;">
+                  <h4 class="field-title">
+                    Member since: <span
+                      class="field-content">{{transformDateJoin(currentConversation.users[destinationUser].joinDate)}}</span>
+                  </h4>
+
+                </div>
+                <div
+                  style="display: flex;justify-content: center;align-items: center;padding-top: 10px;padding-bottom: 20px;">
+                  <h4 class="field-title">
+                    Phone: <span
+                      class="field-content">{{transformDateJoin(currentConversation.users[destinationUser].joinDate)}}</span>
+                  </h4>
+
+                </div>
+                <div class="field-container" (click)="onOpenColorsModal(true)">
+                  <h4 class="field-title">
+                    Theme
+                  </h4>
+                  <div class="conversation-theme">
+
+                    <span class="white-circle"></span>
+                  </div>
+
+                </div>
+                <div class="field-container" (click)="onOpenEditPseudoModal(true)">
+                  <h4 class="field-title">
+                    Pseudos
+                  </h4>
+
+                </div>
+                <div class="field-container">
+                  <h4 class="field-title">
+                    Archiver la conversation
+                  </h4>
+
+                </div>
+                <div class="field-container">
+                  <h4 class="field-title">
+                    Supprimer la conversation
+                  </h4>
+
+                </div>
+                <div class="field-container" (click)="onOpenIgnoreMessages(true)">
+                  <h4 class="field-title">
+                    Ignorer les messages
+                  </h4>
+                </div>
+                <div class="field-container" (click)="onOpenBlockMsgModal(true)">
+                  <h4 class="field-title">
+                    Bloquer {{currentConversation.users[destinationUser].surname}}
+                  </h4>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
 
           <div *ngIf="selectedConversation && !loadingMessages" class="col-lg-8 col-md-12 pd-right-none pd-left-none">
             <div class="conversation-box">
@@ -158,14 +392,13 @@
                         style="margin: 0; font-weight: 400;color: #999999;">En ligne</h5>
                       <h5 *ngIf="!currentConversation.users[destinationUser].connection.status"
                         style="margin: 0; font-weight: 400;color: #999999;">
-                        En ligne
                         {{TransformDateOnline(currentConversation.users[destinationUser].connection.lastVisit)}}</h5>
 
                     </div>
 
                   </div>
 
-                  <i class="fas fa-info-circle user-profile-info"></i>
+                  <i class="fas fa-info-circle user-profile-info" (click)="showUserInfo(true)"></i>
                   <!--/ user-message-info -->
                 </div>
                 <!--/ user-message-details -->
@@ -173,6 +406,13 @@
               <!--/ conversation-header -->
 
               <div class="conversation-container">
+                <div *ngIf="imagesToSend.length >0" class="add-image-container">
+                  <div *ngFor="let image of imagesToSend">
+                    <div class="image-to-send" [style.background-image]="'url('+image+')'">
+                      <i class="far fa-times-circle delete-icon" (click)="onDeleteImage(image)"></i>
+                    </div>
+                  </div>
+                </div>
                 <div *ngIf="currentConversation.messages.length==0">
                   <div style="display: flex;justify-content: center;">
                     <span class="time-posted" style="color: #999999;">1:55 PM</span>
@@ -190,15 +430,18 @@
                     Bienvenue à vous deux sur Messenger.
                   </div>
                 </div>
-                <div *ngIf="currentConversation.messages.length>0">
+                <div *ngIf="currentConversation.messages.length>0" style="position: relative;">
                   <div *ngFor="let message of currentConversation.messages">
                     <div *ngIf=" !checkSenderMsg(message.sender)" class="convo-box convo-left">
                       <div class="convo-area-left">
-                        <div style="display: flex;">
-                          <img src="assets/img/users/6.jpg" alt="" style="border-radius: 50%;height: 50px;width: 50px;">
+                        <div style="display: flex; align-items: flex-end;">
+                          <img src="assets/img/users/6.jpg" alt="" class="conversation-user-image">
                         </div>
                         <div class="convo-message-left">
                           <p>{{message.content}}</p>
+                          <!-- <img class="display-image-sended"
+                            src="https://scontent.ftun2-1.fna.fbcdn.net/v/t1.15752-9/116290480_324011222303730_8181589891671855193_n.jpg?_nc_cat=108&_nc_sid=b96e70&_nc_ohc=Ptl-O8gjlhcAX9Y9kTD&_nc_ht=scontent.ftun2-1.fna&oh=922468e4c059692b79f009e8e0ed3581&oe=5F47F1D7" /> -->
+
                           <span class="tooltiptext-left">
                             <p>{{transformDateMessage(message.date)}}</p>
                           </span>
@@ -221,8 +464,8 @@
 
                         </div>
 
-                        <div style="display: flex;">
-                          <img src="assets/img/users/2.jpg" alt="" style="border-radius: 50%;height: 50px;width: 50px;">
+                        <div style="display: flex; align-items: flex-end;">
+                          <img src="assets/img/users/2.jpg" alt="" class="conversation-user-image">
                         </div>
                       </div>
                     </div>
@@ -232,13 +475,13 @@
 
                 <!--/ convo-box -->
                 <!--/ convo-box -->
-
               </div>
               <!--/ conversation-container -->
               <div class="type_messages">
                 <div class="input-field">
                   <i class="fas fa-image send-message-icon" style="font-size: 24px; padding-right: 10px;"
-                    (click)="openFileImage()"></i>
+                    (click)="uploadImageClicked()">
+                  </i>
                   <textarea [minRows]="1" autosize placeholder="Type a new message" name="currentMessage"
                     id="currentMessage" (focus)="messageField()" [(ngModel)]="currentMessage"></textarea>
                   <ul class="imoji">
@@ -251,11 +494,13 @@
 
                 </div>
               </div>
-
             </div>
+
           </div>
         </div>
       </div>
+      <input type="file" id="uploadimage" style="display: none;" (change)="handlefileInput($event.target.files)"
+        multiple />
 
     </div>
   </div>

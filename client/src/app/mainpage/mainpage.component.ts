@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { switchMap, distinctUntilChanged, debounceTime } from 'rxjs/operators'
 import { Observable } from 'rxjs';
 import * as moment from 'moment';
+import Swal from 'sweetalert2';
 moment.locale('fr')
 
 
@@ -25,6 +26,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
     searchedUsers: any;
     searchObs: Observable<string>;
     conversationMsgs: any;
+    selectedProfileInfo: boolean;
     loading: boolean;
     loadingMessages: boolean;
     currentConversation: any;
@@ -32,11 +34,28 @@ export class mainPageComponent implements OnInit, OnDestroy {
     focusConversation: {};
     loadingSearch: boolean;
     destinationUser: number;
+    imagesToSend: any;
+    fileUpload: File;
+    //modals
+    openBlockMsgModal: boolean;
+    openIgnoreMessages: boolean;
+    openEditPseudoModal: boolean;
+    openPseudoModal: boolean;
+    openColorsModal: boolean;
+
 
     constructor(private UserService: UserService, private conversationService: ConversationService, private router: Router) {
 
         this.search = this.search.bind(this)
+        this.openBlockMsgModal = false;
+        this.openIgnoreMessages = false;
+        this.openEditPseudoModal = false;
+        this.openPseudoModal = false;
+        this.openColorsModal = false;
+        this.fileUpload = null;
+        this.imagesToSend = [];
         this.currentMessage = '';
+        this.selectedProfileInfo = false;
         this.searchTerms = '';
         this.loading = true;
         this.loadingSearch = false;
@@ -61,8 +80,6 @@ export class mainPageComponent implements OnInit, OnDestroy {
 
         this.UserService.userHasDisconnected()
             .subscribe((data: any) => {
-                console.log('disconnected')
-
                 this.userConversations.forEach(conversation => {
                     const userIndex = conversation.users.findIndex(user => user._id == data.userid)
                     if (userIndex != -1) {
@@ -79,7 +96,6 @@ export class mainPageComponent implements OnInit, OnDestroy {
                     return conversationMessages.includes(newMessage._id)
                 })
                 const messageIndex = this.userConversations[conversationIndex].messages.findIndex(message => newMessage._id == message._id)
-                console.log(newMessage)
                 this.userConversations[conversationIndex].messages[messageIndex] = newMessage;
 
             })
@@ -119,9 +135,21 @@ export class mainPageComponent implements OnInit, OnDestroy {
         const year = + _Date.getFullYear();
         const hour = + _Date.getHours();
 
-        if (year === nowyear && day === nowday && hour - nowhour < 12)
-            return moment(_Date).seconds(0).milliseconds(0).fromNow()
+        if (year === nowyear && day === nowday && nowhour - hour < 12)
+            return 'En ligne ' + moment(_Date).seconds(0).milliseconds(0).fromNow()
         return ""
+    }
+    transformDateJoin(date) {
+        const _Date = new Date(date);
+        const _nowDate = new Date()
+        const nowYear = _nowDate.getFullYear();
+        const year = + _Date.getFullYear();
+
+        if (year == nowYear) {
+            return moment(new Date(date)).format('DD MMMM')
+
+        }
+        return moment(new Date(date)).format('DD MMMM YYYY')
     }
     transformDateMessage(date) {
         const _Date = new Date(date);
@@ -150,6 +178,36 @@ export class mainPageComponent implements OnInit, OnDestroy {
         }
         return moment(new Date(date)).format('DD MMMM YYYY à HH:mm')
 
+    }
+    uploadImageClicked() {
+        document.getElementById('uploadimage').click()
+    }
+    onDeleteImage(image) {
+        const imageIndex = this.imagesToSend.findIndex(img => img == image)
+        this.imagesToSend.splice(imageIndex, 1)
+    }
+    handlefileInput(event) {
+        for (let i = 0; i < event.length; i++) {
+
+            if (event.item(i).type.includes('image')) {
+                try {
+                    this.fileUpload = event.item(i);
+                    var reader = new FileReader();
+                    reader.onload = (event: any) => {
+                        this.imagesToSend.push(event.target.result);
+                    };
+                    reader.readAsDataURL(this.fileUpload);
+                } catch (err) {
+                    console.log(err)
+                }
+            } else {
+                Swal.fire('Oops...', 'Le format incorrect', 'info');
+            }
+        }
+    }
+    showUserInfo(status) {
+        this.selectedProfileInfo = status;
+        this.selectedConversation = !status;
     }
     conversationDateFormat(date) {
         const _Date = new Date(date);
@@ -236,6 +294,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
         console.log(this.userConversations[conversationIndex].users[this.destinationUser].connection)
         this.selectedConversation = true;
+        this.selectedProfileInfo = false;
 
     }
     indexUserDest(conversationId) {//to check userconversation or currentconversation
@@ -328,6 +387,30 @@ export class mainPageComponent implements OnInit, OnDestroy {
 
 
     }
+    //modals controllers 
+
+    onOpenBlockMsgModal(status: boolean) {
+
+        this.openBlockMsgModal = status
+
+    };
+    onOpenIgnoreMessages(status: boolean) {
+
+        this.openIgnoreMessages = status
+
+    };
+    onOpenEditPseudoModal(status: boolean) {
+        this.openEditPseudoModal = status
+
+    };
+    onOpenPseudoModal(status: boolean) {
+        this.openPseudoModal = status
+
+    };
+    onOpenColorsModal(status: boolean) {
+        this.openColorsModal = status
+
+    };
 
     ngOnDestroy() {
         this.users = []
