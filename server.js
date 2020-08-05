@@ -42,7 +42,14 @@ server.listen(process.env.PORT || 5000, () => {
                 return connecteduser.userid === data.userid
             })
             if (userindex >= 0)
-                socket.broadcast.to(ConnectedUsers[userindex].socketid).emit('seen-message', data.message)
+                socket.broadcast.to(ConnectedUsers[userindex].socketid).emit('seen-message', data.info)
+        })
+        socket.on('message-received', (data) => {
+            const userindex = ConnectedUsers.findIndex(connecteduser => {
+                return connecteduser.userid === data.userid
+            })
+            if (userindex >= 0)
+                socket.broadcast.to(ConnectedUsers[userindex].socketid).emit('message-received', data.message)
         })
         socket.on('user-disconnected', (obj) => {
             socket.broadcast.emit('user-disconnected', obj)

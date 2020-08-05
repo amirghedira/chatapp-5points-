@@ -80,6 +80,17 @@ export class UserService {
         );
         return observable;
     }
+    messageReceived() {
+        let observable = new Observable(
+            (observer) => {
+                this.socket.on('message-received', (data) => {
+                    observer.next(data);
+                });
+                return () => this.socket.disconnect();
+            }
+        );
+        return observable;
+    }
     userHasConnected() {
         let observable = new Observable(
             (observer) => {

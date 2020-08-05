@@ -91,7 +91,7 @@ exports.disconnectUser = async (req, res) => {
 }
 exports.searchUsers = async (req, res) => {
     try {
-        const users = await User.find({ $or: [{ username: { $regex: req.query.term } }, { name: { $regex: req.query.term } }, { surname: { $regex: req.query.term } }] }).exec()
+        const users = await User.find({ $or: [{ username: { $regex: req.query.term } }, { name: { $regex: req.query.term } }, { surname: { $regex: req.query.term } }], $and: [{ _id: { $ne: req.user._id } }] }).exec()
 
         res.status(200).json({ users: users })
 

@@ -6,8 +6,13 @@ const conversationRoutes = require('./routes/conversation')
 const bodyParser = require('body-parser')
 const io = require('socket.io-client')
 const socket = io('http://localhost:5000')
+const fileUpload = require('express-fileupload')
 
 const app = express()
+
+app.use(fileUpload({
+    useTempFiles: true
+}))
 app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))

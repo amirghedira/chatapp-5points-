@@ -23,19 +23,23 @@ export class mainPageComponent implements OnInit, OnDestroy {
     currentMessage: string;
     userConversations: any;
     searchTerms: string;
+    selectedUserPseudoIndex: number;
+    enteredPseudo: string;
+    videosToSend: any;
     searchedUsers: any;
     searchObs: Observable<string>;
     conversationMsgs: any;
     selectedProfileInfo: boolean;
     loading: boolean;
     loadingMessages: boolean;
+    loadingImages: boolean;
     currentConversation: any;
     selectedConversation: boolean;
     focusConversation: {};
     loadingSearch: boolean;
     destinationUser: number;
     imagesToSend: any;
-    fileUpload: File;
+    filesUpload: any;
     //modals
     openBlockMsgModal: boolean;
     openIgnoreMessages: boolean;
@@ -50,10 +54,13 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.openBlockMsgModal = false;
         this.openIgnoreMessages = false;
         this.openEditPseudoModal = false;
+        this.selectedUserPseudoIndex = null;
         this.openPseudoModal = false;
         this.openColorsModal = false;
-        this.fileUpload = null;
+        this.loadingImages = false;
+        this.filesUpload = null;
         this.imagesToSend = [];
+        this.videosToSend = [];
         this.currentMessage = '';
         this.selectedProfileInfo = false;
         this.searchTerms = '';
@@ -67,7 +74,6 @@ export class mainPageComponent implements OnInit, OnDestroy {
         });
         this.UserService.userHasConnected()
             .subscribe(userid => {
-                console.log('connected')
                 this.userConversations.forEach(conversation => {
 
                     const userIndex = conversation.users.findIndex(user => user._id == userid)
@@ -90,20 +96,29 @@ export class mainPageComponent implements OnInit, OnDestroy {
 
 
         this.UserService.seenMessage()
-            .subscribe((newMessage: any) => {
-                const conversationIndex = this.userConversations.findIndex(conversation => {
-                    const conversationMessages = conversation.messages.map(message => message._id)
-                    return conversationMessages.includes(newMessage._id)
+            .subscribe((info: any) => {
+                const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == info.conversation)
+                this.userConversations[conversationIndex].messages.forEach(message => {
+                    if (!message.seen.state)
+                        message.seen = { state: true, seenDate: info.seenDate }
                 })
-                const messageIndex = this.userConversations[conversationIndex].messages.findIndex(message => newMessage._id == message._id)
-                this.userConversations[conversationIndex].messages[messageIndex] = newMessage;
+                this.currentConversation = this.userConversations[conversationIndex]
+
+            })
+        this.UserService.messageReceived()
+            .subscribe((message: any) => {
+
+                if (this.currentConversation && this.currentConversation._id == message.conversation) {
+                    const msgIndex = this.currentConversation.messages.findIndex(msg => msg._id == message._id)
+                    this.currentConversation.messages[msgIndex] = message
+                }
 
             })
         this.UserService.newMessage()
             .subscribe((newConversation: any) => {
                 const conversationIndex = this.userConversations.findIndex(userConversation => userConversation._id == newConversation._id)
                 if (conversationIndex != -1) {
-                    if (this.currentConversation._id == this.userConversations[conversationIndex]._id) {
+                    if (this.currentConversation && this.currentConversation._id == this.userConversations[conversationIndex]._id) {
                         this.currentConversation = newConversation;
                     }
                     this.userConversations.splice(conversationIndex, 1)
@@ -111,6 +126,12 @@ export class mainPageComponent implements OnInit, OnDestroy {
                 }
                 else
                     this.userConversations.unshift(newConversation)
+
+                this.conversationService.setReceivedMessage(newConversation.messages[newConversation.messages.length - 1]._id,
+                    newConversation.users[0]._id == this.connectedUser._id ? newConversation.users[1]._id : newConversation.users[0]._id)
+                    .subscribe(res => {
+                        console.log(res)
+                    })
 
             });
 
@@ -187,21 +208,21 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.imagesToSend.splice(imageIndex, 1)
     }
     handlefileInput(event) {
-        for (let i = 0; i < event.length; i++) {
+        this.filesUpload = event;
 
-            if (event.item(i).type.includes('image')) {
-                try {
-                    this.fileUpload = event.item(i);
-                    var reader = new FileReader();
-                    reader.onload = (event: any) => {
-                        this.imagesToSend.push(event.target.result);
-                    };
-                    reader.readAsDataURL(this.fileUpload);
-                } catch (err) {
-                    console.log(err)
-                }
-            } else {
-                Swal.fire('Oops...', 'Le format incorrect', 'info');
+        for (let i = 0; i < event.length; i++) {
+            try {
+                var reader = new FileReader();
+                reader.onload = (e: any) => {
+                    if (event.item(i).type.includes('image'))
+                        this.imagesToSend.push(e.target.result);
+                    else if (event.item(i).type.includes('video')) {
+                        this.videosToSend.push(e.target.result)
+                    }
+                };
+                reader.readAsDataURL(this.filesUpload[i]);
+            } catch (err) {
+                console.log(err)
             }
         }
     }
@@ -264,16 +285,30 @@ export class mainPageComponent implements OnInit, OnDestroy {
             return this.searchedUsers.length > 0;
     }
     onSendMessage() {
-        if (this.currentConversation._id)
-            this.conversationService.sendMessage(this.currentConversation._id, this.currentMessage).subscribe((response: any) => {
-                this.currentMessage = '';
-                this.currentConversation.messages.push(response.newMessage)
+        if (this.currentConversation._id) {
+            const loadingMessage = {
+                _id: null, sender: this.connectedUser._id,
+                content: this.currentMessage, images: this.imagesToSend, videos: this.videosToSend, seen: { state: false }
+            }
+            const currentMessage = this.currentMessage
+            this.currentMessage = ''
+            this.currentConversation.messages.push(loadingMessage)
+            this.conversationService.sendMessage(this.currentConversation._id, currentMessage, this.filesUpload)
+                .subscribe((response: any) => {
+                    const conversationsIds = this.userConversations.map(conversation => conversation._id)
 
-            })
+                    if (!conversationsIds.includes(this.currentConversation._id)) {
+                        this.userConversations.push(this.currentConversation)
+                    }
+                    this.currentConversation.messages[this.currentConversation.messages.length - 1] = response.newMessage
+
+                })
+        }
         else {
             this.conversationService.createConversation(this.currentConversation.users[this.destinationUser]._id)
                 .subscribe((response: any) => {
-                    this.conversationService.sendMessage(response.conversation._id, this.currentMessage).subscribe((messageResponse: any) => {
+
+                    this.conversationService.sendMessage(response.conversation._id, this.currentMessage, this.filesUpload).subscribe((messageResponse: any) => {
                         this.currentMessage = '';
                         response.conversation.messages.push(messageResponse.newMessage)
                         this.userConversations.unshift(response.conversation)
@@ -285,16 +320,61 @@ export class mainPageComponent implements OnInit, OnDestroy {
         }
 
     }
-    onOpenConvers(conversationId) {
+    getLoadingImageStatus(messageId) {
+        return this.loadingImages && this.currentConversation.messages[this.currentConversation.messages.length - 1]._id == messageId
+    }
+    getLastConversationContent(conversation) {
+        const lastMessage = conversation.messages[conversation.messages.length - 1];
+        if (lastMessage.content.length > 0)
+            if (lastMessage.sender == this.connectedUser._id)
+                return `Vous: ${lastMessage.content}`
+            else
+                return lastMessage.content
+        if (lastMessage.images.length > 0) {
+            if (lastMessage.sender == this.connectedUser._id) {
 
+                if (lastMessage.images.length == 1)
+                    return `Vous envoyé envoyé une photo`
+                return `Vous avez envoyé ${lastMessage.images.length} photos`
+            }
+            if (lastMessage.images.length == 1)
+                return `Vous récu envoyé une photo`
+            return `Vous avez récu ${lastMessage.images.length} photos`
+        }
+    }
+    onOpenConvers(conversationId) {
         this.currentMessage = '';
         const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == conversationId)
         this.currentConversation = this.userConversations[conversationIndex];
         this.loadingMessages = false;
         this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
-        console.log(this.userConversations[conversationIndex].users[this.destinationUser].connection)
         this.selectedConversation = true;
         this.selectedProfileInfo = false;
+
+    }
+
+    getConversationColor() {
+
+        if (this.currentConversation._id)
+            return this.currentConversation.color
+        else
+            return 'rgb(0, 153, 255)'
+    }
+    checkBlockedConversation() {
+        if (this.currentConversation._id)
+            return this.currentConversation.blocked.includes(this.currentConversation.users[this.destinationUser]._id)
+                || this.currentConversation.blocked.includes(this.connectedUser._id)
+        return false
+
+    }
+    checkBlockedConversations(conversationId) {
+
+        const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == conversationId)
+        return this.userConversations[conversationIndex].blocked.includes(this.userConversations[conversationIndex].users[0]._id)
+            || this.userConversations[conversationIndex].blocked.includes(this.userConversations[conversationIndex].users[1]._id)
+    }
+    checkBlockedUser() {
+        return this.currentConversation.blocked.includes(this.currentConversation.users[this.destinationUser]._id)
 
     }
     indexUserDest(conversationId) {//to check userconversation or currentconversation
@@ -320,17 +400,31 @@ export class mainPageComponent implements OnInit, OnDestroy {
 
     createdConversation(user) {
 
-        this.selectedConversation = true;
-        this.currentConversation = { _id: null, users: [{ ...this.connectedUser }, { ...user }], messages: [] }
-        this.destinationUser = 1;
-        this.loadingMessages = false;
-        this.searchTerms = '';
-
+        this.conversationService.getConversationByUsers(user._id)
+            .subscribe((response: any) => {
+                if (response.conversation) {
+                    this.currentConversation = response.conversation;
+                    this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
+                    this.loadingMessages = false;
+                    this.selectedConversation = true;
+                    this.searchTerms = '';
+                }
+                else {
+                    this.currentConversation = { _id: null, users: [{ ...this.connectedUser }, { ...user }], messages: [] }
+                    this.destinationUser = 1;
+                    this.loadingMessages = false;
+                    this.selectedConversation = true;
+                    this.searchTerms = '';
+                }
+            })
     }
     isLastMessage(messageId: string) {
 
-        const indexMessage = this.currentConversation.messages.findIndex(message => message._id == messageId)
-        return indexMessage == this.currentConversation.messages.length - 1
+        if (messageId) {
+            const indexMessage = this.currentConversation.messages.findIndex(message => message._id == messageId)
+            return indexMessage == this.currentConversation.messages.length - 1
+        }
+        return true;
 
 
     }
@@ -338,14 +432,14 @@ export class mainPageComponent implements OnInit, OnDestroy {
         if (this.currentConversation.messages.length > 0) {
             const message = this.currentConversation.messages[this.currentConversation.messages.length - 1]
             if (message.sender != this.connectedUser._id)
-                this.conversationService.markMessageAsRead(this.currentConversation.users[this.destinationUser]._id, message._id)
+                this.conversationService.markConversationasRead(this.currentConversation.users[this.destinationUser]._id, this.currentConversation._id)
                     .subscribe(() => {
                         const msgIndex = this.currentConversation.messages.findIndex(msg => msg._id == message._id)
                         this.currentConversation.messages[msgIndex].seen.state = true;
                     })
         }
     }
-    lastMessageSeen(conversationId) {
+    islastMessageSeen(conversationId) {
         const conversation = this.userConversations.find(conversation => conversation._id == conversationId)
         const message = conversation.messages[conversation.messages.length - 1]
         if (conversation.messages.length > 0) // to check 
@@ -354,6 +448,14 @@ export class mainPageComponent implements OnInit, OnDestroy {
             else
                 return true
         return false
+    }
+    isLastSeenMsg(messageId) {
+        const messageIndex = this.currentConversation.messages.findIndex(message => message.seen.state == false)
+        if (messageIndex == -1)
+            return this.currentConversation.messages[this.currentConversation.messages.length - 1]._id == messageId
+        if (messageIndex == 0)
+            return this.currentConversation.messages[messageIndex].seen.state
+        return this.currentConversation.messages[messageIndex - 1]._id == messageId
     }
     showSeenPicture(conversationId) {
         const conversation = this.userConversations.find(conversation => conversation._id == conversationId)
@@ -366,6 +468,44 @@ export class mainPageComponent implements OnInit, OnDestroy {
         return false
     }
 
+    setConversationColor(color: string) {
+        this.conversationService.changeConversationColor(this.currentConversation._id, color)
+            .subscribe(() => {
+                this.currentConversation.color = color;
+                const convIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
+                this.userConversations[convIndex].color = color
+            })
+    }
+
+    archiveConversation() {
+
+        this.conversationService.archiveConversation(this.currentConversation._id)
+            .subscribe(res => {
+                const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
+                this.userConversations.splice(conversationIndex, 1)
+            })
+    }
+    blockUser() {
+
+        this.conversationService.blockUserConversation(this.currentConversation._id, this.currentConversation.users[this.destinationUser]._id)
+            .subscribe((response: any) => {
+                this.openBlockMsgModal = false;
+                this.currentConversation.blocked = response.blocked
+            })
+    }
+    deBlockUser() {
+        this.conversationService.unBlockConversation(this.currentConversation._id, this.currentConversation.users[this.destinationUser]._id)
+            .subscribe((response: any) => {
+                this.openBlockMsgModal = false;
+                this.currentConversation.blocked = response.blocked
+            })
+    }
+    deleteConversation() {
+        this.conversationService.deleteConversation(this.currentConversation._id)
+            .subscribe(res => {
+                console.log(res)
+            })
+    }
     search(text: Observable<string>) {
 
 
@@ -379,12 +519,11 @@ export class mainPageComponent implements OnInit, OnDestroy {
                 })
             )
             .subscribe((response: any) => {
-                this.searchedUsers = response.users.filter(user => { return user._id !== this.connectedUser._id })
+                this.searchedUsers = response.users
                 this.loadingSearch = false
             })
 
         return new Observable()
-
 
     }
     //modals controllers 
@@ -403,10 +542,28 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.openEditPseudoModal = status
 
     };
-    onOpenPseudoModal(status: boolean) {
+    saveUserPseudo() {
+        console.log(this.enteredPseudo)
+        this.conversationService.changeConversationPseudo(this.currentConversation._id, this.currentConversation.users[this.selectedUserPseudoIndex]._id, this.enteredPseudo)
+            .subscribe((response: any) => {
+                this.currentConversation.pseudos = response.conversationPseudos
+            })
+    }
+    onOpenPseudoModal(status: boolean, selectedUserIndex) {
+        this.selectedUserPseudoIndex = selectedUserIndex
         this.openPseudoModal = status
 
     };
+    getUserPseudo() {
+
+        const pseudoIndex = this.currentConversation.pseudos.findIndex(pseudo => pseudo.userid == this.currentConversation.users[this.destinationUser]._id)
+        return this.currentConversation.pseudos[pseudoIndex].content
+    }
+    userHavePseudo() {
+        if (this.currentConversation._id)
+            return this.currentConversation.pseudos.findIndex(pseudo => pseudo.userid == this.currentConversation.users[this.destinationUser]._id) != -1
+        return false
+    }
     onOpenColorsModal(status: boolean) {
         this.openColorsModal = status
 
