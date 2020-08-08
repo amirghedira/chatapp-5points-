@@ -1,11 +1,14 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { UserService } from '../service/user.service';
 import { ConversationService } from '../service/conversation.service';
 import { Router } from '@angular/router';
 import { switchMap, distinctUntilChanged, debounceTime } from 'rxjs/operators'
-import { Observable } from 'rxjs';
+import { Observable, timer, BehaviorSubject } from 'rxjs';
 import * as moment from 'moment';
-import Swal from 'sweetalert2';
+import { SafeUrl } from '@angular/platform-browser';
+
+declare var MediaRecorder: any;
+
 moment.locale('fr')
 
 
@@ -14,6 +17,7 @@ moment.locale('fr')
     templateUrl: './mainpage.component.html',
     styleUrls: ['./mainpage.component.css']
 })
+
 
 export class mainPageComponent implements OnInit, OnDestroy {
 
@@ -27,12 +31,14 @@ export class mainPageComponent implements OnInit, OnDestroy {
     enteredPseudo: string;
     videosToSend: any;
     searchedUsers: any;
+    stopRecordingVocal: BehaviorSubject<any>;
     searchObs: Observable<string>;
     conversationMsgs: any;
     selectedProfileInfo: boolean;
     loading: boolean;
     loadingMessages: boolean;
     loadingImages: boolean;
+    isRecordingVocal: boolean;
     currentConversation: any;
     selectedConversation: boolean;
     focusConversation: {};
@@ -42,18 +48,29 @@ export class mainPageComponent implements OnInit, OnDestroy {
     filesUpload: any;
     //modals
     openBlockMsgModal: boolean;
+    openDeleteConverModal: boolean;
     openIgnoreMessages: boolean;
     openEditPseudoModal: boolean;
     openPseudoModal: boolean;
     openColorsModal: boolean;
+    openMicroPopUp: boolean;
+    @ViewChild('inputMessage', { static: false }) inputMessage: ElementRef;
+
+    time: number = 0;
+    recordDuration: string;
+    saveRecordAudio: boolean;
+    interval;
+
 
 
     constructor(private UserService: UserService, private conversationService: ConversationService, private router: Router) {
+
 
         this.search = this.search.bind(this)
         this.openBlockMsgModal = false;
         this.openIgnoreMessages = false;
         this.openEditPseudoModal = false;
+        this.openMicroPopUp = false;
         this.selectedUserPseudoIndex = null;
         this.openPseudoModal = false;
         this.openColorsModal = false;
@@ -67,19 +84,27 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.loading = true;
         this.loadingSearch = false;
         this.focusConversation = {};
+        this.isRecordingVocal = false;
         this.loadingMessages = true;
+        this.recordDuration = '00:00'
         this.UserService.newUserAdded().subscribe((newuser) => {
             this.users = [...this.users, newuser]
 
         });
+
         this.UserService.userHasConnected()
             .subscribe(userid => {
-                this.userConversations.forEach(conversation => {
-
+                this.userConversations = this.userConversations.map(conversation => {
+                    const userIds = conversation.users.map(user => user._id)
+                    if (userIds.includes(userid))
+                        conversation.messages = conversation.messages.map((message) => {
+                            return { ...message, reception: true }
+                        });
                     const userIndex = conversation.users.findIndex(user => user._id == userid)
                     if (userIndex != -1) {
                         conversation.users[userIndex].connection = { status: true }
                     }
+                    return conversation
 
                 });
             })
@@ -143,7 +168,6 @@ export class mainPageComponent implements OnInit, OnDestroy {
             return moment(new Date(date)).format('HH:mm')
         return moment(new Date(date)).format('DD MMMM YYYY à HH:mm')
     }
-
     TransformDateOnline(date) {
 
         const _Date = new Date(date);
@@ -205,11 +229,21 @@ export class mainPageComponent implements OnInit, OnDestroy {
     }
     onDeleteImage(image) {
         const imageIndex = this.imagesToSend.findIndex(img => img == image)
-        this.imagesToSend.splice(imageIndex, 1)
+        this.imagesToSend.splice(imageIndex, 1);
+        (<HTMLInputElement>document.getElementById('uploadimage')).value = '';
+
+    }
+    onDeleteVideo(video) {
+        const videoIndex = this.videosToSend.findIndex(vid => vid == video)
+        this.videosToSend.splice(videoIndex, 1);
+        (<HTMLInputElement>document.getElementById('uploadimage')).value = '';
+
+
     }
     handlefileInput(event) {
-        this.filesUpload = event;
 
+        this.filesUpload = event;
+        console.log(this.filesUpload)
         for (let i = 0; i < event.length; i++) {
             try {
                 var reader = new FileReader();
@@ -217,7 +251,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
                     if (event.item(i).type.includes('image'))
                         this.imagesToSend.push(e.target.result);
                     else if (event.item(i).type.includes('video')) {
-                        this.videosToSend.push(e.target.result)
+                        this.videosToSend.push(event.item(i))
                     }
                 };
                 reader.readAsDataURL(this.filesUpload[i]);
@@ -285,11 +319,11 @@ export class mainPageComponent implements OnInit, OnDestroy {
             return this.searchedUsers.length > 0;
     }
     onSendMessage() {
+        const loadingMessage = {
+            _id: null, sender: this.connectedUser._id,
+            content: this.currentMessage, images: this.imagesToSend, videos: this.videosToSend, seen: { state: false }
+        }
         if (this.currentConversation._id) {
-            const loadingMessage = {
-                _id: null, sender: this.connectedUser._id,
-                content: this.currentMessage, images: this.imagesToSend, videos: this.videosToSend, seen: { state: false }
-            }
             const currentMessage = this.currentMessage
             this.currentMessage = ''
             this.currentConversation.messages.push(loadingMessage)
@@ -305,6 +339,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
                 })
         }
         else {
+            this.currentConversation.messages.push(loadingMessage)
             this.conversationService.createConversation(this.currentConversation.users[this.destinationUser]._id)
                 .subscribe((response: any) => {
 
@@ -312,12 +347,21 @@ export class mainPageComponent implements OnInit, OnDestroy {
                         this.currentMessage = '';
                         response.conversation.messages.push(messageResponse.newMessage)
                         this.userConversations.unshift(response.conversation)
-                        this.currentConversation.messages.push(messageResponse.newMessage)
+                        this.currentConversation = response.conversation
+                        this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
+
 
                     })
 
                 })
         }
+        this.videosToSend = [];
+        this.imagesToSend = [];
+        setTimeout(() => {
+            var container = document.getElementById('conversation-container')
+            container.scrollTop = container.scrollHeight;
+        }, (1));
+        (<HTMLInputElement>document.getElementById('uploadimage')).value = '';
 
     }
     getLoadingImageStatus(messageId) {
@@ -341,6 +385,24 @@ export class mainPageComponent implements OnInit, OnDestroy {
                 return `Vous récu envoyé une photo`
             return `Vous avez récu ${lastMessage.images.length} photos`
         }
+        if (lastMessage.videos.length > 0) {
+            if (lastMessage.sender == this.connectedUser._id) {
+
+                if (lastMessage.videos.length == 1)
+                    return `Vous envoyé envoyé une video`
+                return `Vous avez envoyé ${lastMessage.videos.length} videos`
+            }
+            if (lastMessage.videos.length == 1)
+                return `Vous récu envoyé une photo`
+            return `Vous avez récu ${lastMessage.videos.length} videos`
+        }
+        if (lastMessage.audio.length > 0) {
+            if (lastMessage.sender == this.connectedUser._id) {
+
+                return 'Vous avez envoyé un message vocal.'
+            }
+            return 'Vous avez récu un message vocal.'
+        }
     }
     onOpenConvers(conversationId) {
         this.currentMessage = '';
@@ -350,9 +412,14 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
         this.selectedConversation = true;
         this.selectedProfileInfo = false;
+        setTimeout(() => {
+            var container = document.getElementById('conversation-container')
+            container.scrollTop = container.scrollHeight;
+            this.inputMessage.nativeElement.focus()
+
+        }, 1)
 
     }
-
     getConversationColor() {
 
         if (this.currentConversation._id)
@@ -367,6 +434,74 @@ export class mainPageComponent implements OnInit, OnDestroy {
         return false
 
     }
+    stopRecording(withSave: boolean) {
+        this.saveRecordAudio = withSave;
+        this.stopRecordingVocal.next(true)
+        this.openMicroPopUp = false;
+        this.isRecordingVocal = false;
+    }
+    startTimer() {
+        this.interval = setInterval(() => {
+            if (this.time === 0) {
+                this.time++;
+            } else {
+                this.time++;
+            }
+            this.recordDuration = this.transform(this.time)
+        }, 1000);
+    }
+    transform(value: number): string {
+        const minutes: number = Math.floor(value / 60);
+        const seconds = (value - minutes * 60) < 10 ? '0' + (value - minutes * 60) : (value - minutes * 60)
+        return '00' + ':' + seconds
+    }
+    pauseTimer() {
+        clearInterval(this.interval);
+    }
+    startRecording() {
+
+        this.stopRecordingVocal = new BehaviorSubject(false)
+        var device = navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        this.isRecordingVocal = true;
+        var items = [];
+        device.then(stream => {
+
+            var microRecorder = new MediaRecorder(stream);
+            microRecorder.ondataavailable = e => {
+                items.push(e.data)
+                if (microRecorder.state == 'inactive') {
+                    if (this.saveRecordAudio) {
+                        var blob = new Blob(items, { type: 'audio/webm' })
+                        items = [];
+                        // this.conversationService.sendVocalMessage(this.currentConversation._id, blob)
+                        //     .subscribe((response: any) => {
+                        //         this.currentConversation.messages.push(response.message)
+                        //     })
+                    }
+                    this.stopRecordingVocal.complete()
+                    sub.unsubscribe()
+                }
+            }
+            microRecorder.start()
+            this.startTimer()
+            const sub = this.stopRecordingVocal.subscribe(res => {
+                if (res) {
+                    microRecorder.stop();
+                    this.pauseTimer()
+                    stream.getTracks().forEach(track => track.stop())
+                }
+            })
+            setTimeout(() => {
+                if (microRecorder.state == 'recording') {
+                    microRecorder.stop();
+                    this.pauseTimer()
+                    stream.getTracks().forEach(track => track.stop())
+                    this.isRecordingVocal = false;
+                }
+            }, 50000)
+        })
+
+    }
     checkBlockedConversations(conversationId) {
 
         const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == conversationId)
@@ -377,7 +512,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
         return this.currentConversation.blocked.includes(this.currentConversation.users[this.destinationUser]._id)
 
     }
-    indexUserDest(conversationId) {//to check userconversation or currentconversation
+    indexUserDest(conversationId) {
         const index = this.userConversations.findIndex(conversation => conversation._id == conversationId);
         const indexUserDest = this.userConversations[index].users.findIndex(user => user._id != this.connectedUser._id)
         return indexUserDest
@@ -398,10 +533,10 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.focusConversation = { id: conversationid, status: status }
     }
 
-    createdConversation(user) {
-
+    onOpenSearchedConversation(user) {
         this.conversationService.getConversationByUsers(user._id)
             .subscribe((response: any) => {
+                console.log(response.conversation)
                 if (response.conversation) {
                     this.currentConversation = response.conversation;
                     this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
@@ -410,6 +545,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
                     this.searchTerms = '';
                 }
                 else {
+                    console.log(response)
                     this.currentConversation = { _id: null, users: [{ ...this.connectedUser }, { ...user }], messages: [] }
                     this.destinationUser = 1;
                     this.loadingMessages = false;
@@ -428,13 +564,13 @@ export class mainPageComponent implements OnInit, OnDestroy {
 
 
     }
-    messageField() {
+    messageFieldFocused() {
         if (this.currentConversation.messages.length > 0) {
-            const message = this.currentConversation.messages[this.currentConversation.messages.length - 1]
-            if (message.sender != this.connectedUser._id)
+            const lastMessage = this.currentConversation.messages[this.currentConversation.messages.length - 1]
+            if (lastMessage.sender != this.connectedUser._id && !lastMessage.seen.state)
                 this.conversationService.markConversationasRead(this.currentConversation.users[this.destinationUser]._id, this.currentConversation._id)
                     .subscribe(() => {
-                        const msgIndex = this.currentConversation.messages.findIndex(msg => msg._id == message._id)
+                        const msgIndex = this.currentConversation.messages.findIndex(msg => msg._id == lastMessage._id)
                         this.currentConversation.messages[msgIndex].seen.state = true;
                     })
         }
@@ -442,25 +578,31 @@ export class mainPageComponent implements OnInit, OnDestroy {
     islastMessageSeen(conversationId) {
         const conversation = this.userConversations.find(conversation => conversation._id == conversationId)
         const message = conversation.messages[conversation.messages.length - 1]
-        if (conversation.messages.length > 0) // to check 
+        if (conversation.messages.length > 0)
             if (message.sender != this.connectedUser._id)
                 return message.seen.state;
             else
                 return true
         return false
     }
-    isLastSeenMsg(messageId) {
+    isLastSeenMsg(message) {
+        const lastmessage = this.currentConversation.messages[this.currentConversation.messages.length - 1]
+        if (lastmessage.sender != this.connectedUser._id) {
+            return message._id == lastmessage._id
+        }
+
         const messageIndex = this.currentConversation.messages.findIndex(message => message.seen.state == false)
         if (messageIndex == -1)
-            return this.currentConversation.messages[this.currentConversation.messages.length - 1]._id == messageId
+            return this.currentConversation.messages[this.currentConversation.messages.length - 1]._id == message._id
         if (messageIndex == 0)
             return this.currentConversation.messages[messageIndex].seen.state
-        return this.currentConversation.messages[messageIndex - 1]._id == messageId
+        return this.currentConversation.messages[messageIndex - 1]._id == message._id
+
     }
     showSeenPicture(conversationId) {
         const conversation = this.userConversations.find(conversation => conversation._id == conversationId)
         const message = conversation.messages[conversation.messages.length - 1]
-        if (conversation.messages.length > 0) // to check 
+        if (conversation.messages.length > 0)
             if (message.sender == this.connectedUser._id)
                 return message.seen.state;
             else
@@ -474,6 +616,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
                 this.currentConversation.color = color;
                 const convIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
                 this.userConversations[convIndex].color = color
+                this.openColorsModal = false;
             })
     }
 
@@ -483,6 +626,8 @@ export class mainPageComponent implements OnInit, OnDestroy {
             .subscribe(res => {
                 const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
                 this.userConversations.splice(conversationIndex, 1)
+                this.selectedConversation = false;
+                this.selectedProfileInfo = false
             })
     }
     blockUser() {
@@ -502,8 +647,12 @@ export class mainPageComponent implements OnInit, OnDestroy {
     }
     deleteConversation() {
         this.conversationService.deleteConversation(this.currentConversation._id)
-            .subscribe(res => {
-                console.log(res)
+            .subscribe(() => {
+                const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
+                this.userConversations[conversationIndex].messages = []
+                this.selectedConversation = false;
+                this.selectedProfileInfo = false;
+                this.openDeleteConverModal = false;
             })
     }
     search(text: Observable<string>) {
@@ -533,6 +682,12 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.openBlockMsgModal = status
 
     };
+    onOpenRecordPopUp() {
+        this.openMicroPopUp = !this.openMicroPopUp
+    };
+    onOpenDeleteConver(status: boolean) {
+        this.openDeleteConverModal = status
+    }
     onOpenIgnoreMessages(status: boolean) {
 
         this.openIgnoreMessages = status

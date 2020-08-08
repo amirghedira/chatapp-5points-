@@ -59,6 +59,30 @@
 
   </div>
 
+  <div *ngIf="openDeleteConverModal">
+    <div class="backdrop-container" (click)="onOpenDeleteConver(false)">
+
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4 class="user-name">
+          Supprimer cette conversation ?
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <p>Cela supprimera définitivement l’historique de la conversation.</p>
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onOpenDeleteConver(false)">Annuler</button>
+          <button class="button-danger" (click)="deleteConversation()" style="font-weight: 500;">Supprimer</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
 
   <div *ngIf="openEditPseudoModal">
     <div class="backdrop-container" (click)="onOpenEditPseudoModal(false)">
@@ -71,14 +95,14 @@
       <div class="users-container">
 
         <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true, destinationUser)">
-          <img src="assets/img/users/9.jpg" class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;"
+          <img src="assets/img/users/6.jpg" class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;"
             alt="">
           <h4 class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
             {{currentConversation.users[destinationUser].name}} {{currentConversation.users[destinationUser].surname}}
           </h4>
         </div>
         <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true, destinationUser==1 ? 0:1)">
-          <img src="assets/img/users/9.jpg" class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;"
+          <img src="assets/img/users/6.jpg" class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;"
             alt="">
           <h4 *ngIf="destinationUser==1" class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
             {{currentConversation.users[0].name}} {{currentConversation.users[0].surname}}
@@ -220,7 +244,7 @@
                         <span
                           *ngIf="conversation.users[indexUserDest(conversation._id)].connection.status && !checkBlockedConversations(conversation._id)"
                           class="online-status on-picture"></span>
-                        <img src="assets/img/users/9.jpg" class="img-circle" alt="">
+                        <img src="assets/img/users/6.jpg" class="img-circle" alt="">
                       </div>
                       <div class="user-message-info">
                         <div style="align-self: center;">
@@ -283,7 +307,7 @@
               <div class="messages-list" *ngIf="!loadingSearch && checkUserAvailabe() && searchTerms.length>0">
                 <ul style="list-style-type: none;" *ngFor="let user of searchedUsers">
                   <li class="message-item">
-                    <div class="user-message-details" (click)="createdConversation(user)">
+                    <div class="user-message-details" (click)="onOpenSearchedConversation(user)">
                       <div class="user-message-img">
                         <span class="online-status on-picture"></span>
                         <img src="assets/img/users/9.jpg" class="img-circle" alt="">
@@ -380,7 +404,7 @@
                   </h4>
 
                 </div>
-                <div class="field-container" (click)="deleteConversation()">
+                <div class="field-container" (click)="onOpenDeleteConver(true)">
                   <h4 class="field-title">
                     Supprimer la conversation
                   </h4>
@@ -404,7 +428,6 @@
               </div>
             </div>
           </div>
-
           <div *ngIf="selectedConversation && !loadingMessages" class="col-lg-8 col-md-12 pd-right-none pd-left-none">
             <div class="conversation-box">
               <div class="conversation-header">
@@ -444,7 +467,7 @@
               </div>
               <!--/ conversation-header -->
 
-              <div class="conversation-container">
+              <div class="conversation-container" id="conversation-container">
                 <div *ngIf="currentConversation.messages.length==0">
                   <div style="display: flex;justify-content: center;">
                     <span class="time-posted" style="color: #999999;">1:55 PM</span>
@@ -494,6 +517,9 @@
                               </div>
                             </div>
                             <div class="message-text-left">
+                              <audio *ngIf="message.audio" controls style="outline: none;">
+                                <source type="audio/webm" [src]="message.audio">
+                              </audio>
                               <p *ngIf="message.content.length>0">{{message.content}}</p>
 
                             </div>
@@ -503,7 +529,12 @@
                           </span>
                         </div>
                       </div>
+                      <div *ngIf="isLastSeenMsg(message)"
+                        style="display: flex;justify-content: flex-end; align-items: center;padding-right: 5px;">
+                        <img src="assets/img/users/6.jpg" alt="" class="conversation-user-image"
+                          style="height: 15px;width: 15px;">
 
+                      </div>
                     </div>
 
                     <div *ngIf="checkSenderMsg(message.sender)" class="convo-box convo-right">
@@ -536,21 +567,24 @@
                               </div>
                             </div>
                             <div class="message-text-right">
+                              <audio controls *ngIf="message.audio" style="outline: none;">
+                                <source type="audio/webm" [src]="message.audio">
+                              </audio>
                               <p *ngIf=" message.content.length>0" [style.background-color]="getConversationColor()">
                                 {{message.content}}</p>
                             </div>
                           </div>
 
                         </div>
-                        <div style="display: flex; align-items: flex-end;">
+                        <div style="display: flex; align-items: flex-end;"
+                          [style.padding]="!isLastSeenMsg(message) && message.seen.state ? '0 15px 0 0' : !isLastSeenMsg(message) ?  '2px 2px': '0' ">
                           <div *ngIf="!message.seen.state">
                             <i *ngIf="!message._id" class="far fa-circle icon-state"></i>
-                            <i *ngIf="message._id && message.reception == 'false'"
-                              class="far fa-check-circle icon-state"></i>
-                            <i *ngIf="message._id && message.reception == 'true'" class="fas fa-check-circle"
+                            <i *ngIf="message._id && !message.reception" class="far fa-check-circle icon-state"></i>
+                            <i *ngIf="message._id && message.reception" class="fas fa-check-circle"
                               style="font-size: 11px;color: #999999;"></i>
                           </div>
-                          <div *ngIf="isLastSeenMsg(message._id)">
+                          <div *ngIf="isLastSeenMsg(message)">
                             <img src="assets/img/users/6.jpg" alt="" class="conversation-user-image"
                               style="height: 15px;width: 15px;">
 
@@ -576,23 +610,76 @@
                 </div>
                 <div *ngIf="videosToSend.length >0" class="add-image-container">
                   <div *ngFor="let video of videosToSend">
-                    <video style="border-radius: 18px;" width="200" height="200" controls>
-                      <source type="video/mp4" [src]="video" id="mp4" />
-                    </video>
+                    <div class="videos-to-send">
+                      <div class="play-button-container">
+                        <i class="fas fa-play-circle" style="font-size: 40px; color:white;padding: 10px;"></i>
+                      </div>
+                      <div class="file-info-container">
+                        <div>
+                          <h4 style="margin: 0;">{{video.type.split('/')[1] | uppercase}}</h4>
+                          <p class="video-name">{{video.name}}</p>
+                        </div>
+                        <div
+                          style="display: flex;align-items:flex-start;justify-content: flex-end;width: 100%;height: 100%;padding:10px;">
+                          <i class="far fa-times-circle delete-videos" (click)="onDeleteVideo(video)"></i>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="openMicroPopUp"
+                  style="position: sticky;left: 0;top: 0;margin-bottom: 20px;margin-left: -20px;">
+                  <div class="micro-box">
+                    <div class="micro-container">
+                      <div style="width: 100%;">
+                        <div *ngIf="isRecordingVocal" style="display: flex;justify-content: flex-end;width: 100%;">
+                          <p style="margin: 0;padding: 10px 10px 0 0;color:#0084ff;cursor: pointer;"
+                            (click)="stopRecording(false)">
+                            Annuler</p>
+
+                        </div>
+                        <div style="width: 100%;display: flex;align-items: center;justify-content: center;">
+                          <p class="record-time" [style.color]="isRecordingVocal ? 'red' : '#999999'">
+                            {{recordDuration}}
+                          </p>
+                        </div>
+                        <div style="display: flex;justify-content: center;align-items: center;">
+                          <div style=" padding: 10px; border-radius: 50%; width: max-content;"
+                            [style.background-color]="isRecordingVocal? 'rgba(0,0,0,0.2)' : 'transparent'">
+                            <div
+                              [ngClass]="isRecordingVocal? 'register-button active-record' : 'register-button inactive-record' ">
+                              <p *ngIf="!isRecordingVocal" style="margin: 0;color: white;" (click)="startRecording()">
+                                Enregistrer
+                              </p>
+                              <i *ngIf="isRecordingVocal" class="fas fa-stop" style="font-size: 25px; color: white;"
+                                (click)="stopRecording(true)"></i>
+
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      style="height: min-content;width: min-content;display: flex;justify-content: flex-start;align-items: flex-start;">
+                      <span class="arrow-down" style="color: white;font-size: 25px;"></span>
+                    </div>
                   </div>
                 </div>
                 <div *ngIf="!checkBlockedConversation()" class="input-field">
+                  <i class="fas fa-microphone" style="font-size: 24px; padding-right: 10px;"
+                    (click)="onOpenRecordPopUp()" [style.color]="getConversationColor()"></i>
                   <i class="fas fa-image send-message-icon" style="font-size: 24px; padding-right: 10px;"
                     [style.color]="getConversationColor()" (click)="uploadImageClicked()">
                   </i>
-                  <textarea [minRows]="1" autosize placeholder="Type a new message" name="currentMessage"
-                    id="currentMessage" (focus)="messageField()" [(ngModel)]="currentMessage"></textarea>
+                  <textarea [minRows]="1" #inputMessage autosize placeholder="Type a new message" name="currentMessage"
+                    id="currentMessage" (focus)="messageFieldFocused()" [(ngModel)]="currentMessage"></textarea>
                   <ul class="imoji">
                     <li>
-                      <i *ngIf="currentMessage!='' || imagesToSend.length>0 || videosToSend.length>0"
+                      <i *ngIf="currentMessage.length>0 || imagesToSend.length>0 || videosToSend.length>0"
                         class="fas fa-paper-plane send-message-icon" [style.color]="getConversationColor()"
                         (click)="onSendMessage()"></i>
-                      <i *ngIf="currentMessage==''&& imagesToSend.length==0 && videosToSend.length.length==0"
+                      <i *ngIf="currentMessage.length == 0 && imagesToSend.length == 0 && videosToSend.length == 0"
                         class="fas fa-thumbs-up send-message-icon" [style.color]="getConversationColor()"></i>
                     </li>
                   </ul>

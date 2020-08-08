@@ -11,25 +11,35 @@ import { Router } from '@angular/router';
 export class NavbarComponent implements OnInit {
 
     status: boolean;
+    loading: boolean
+    currentUser: any;
     constructor(private UserService: UserService, private router: Router) {
 
+        this.loading = true;
         this.status = false;
-        this.UserService.userConnected.subscribe((token) => {
+        this.UserService.userConnected.subscribe((user) => {
 
-            if (token)
+            if (user) {
                 this.status = true
+                this.currentUser = user
+            }
 
         });
     }
     ngOnInit() {
 
-        this.UserService.getConnectUser().subscribe((response: any) => {
-            if (response.user)
-                this.status = true
-            else
-                this.status = false
+        if (this.UserService.token)
+            this.UserService.getConnectUser().subscribe((response: any) => {
+                if (response.user)
+                    this.status = true
+                else
+                    this.status = false
+                this.currentUser = response.user
+                this.loading = false
+            })
+        else
+            this.loading = false
 
-        })
 
     }
     onDisconnect() {

@@ -9,8 +9,7 @@ const ConversationSchema = new mongoose.Schema({
     color: { type: String, required: true, default: "rgb(0, 132, 255)" },
     archived: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
     blocked: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
-    deleted: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
-
+    deleted: [{ user: { type: mongoose.Types.ObjectId, ref: 'User' }, lastMessage: { type: mongoose.Types.ObjectId, ref: 'Message' } }]
 
 })
 

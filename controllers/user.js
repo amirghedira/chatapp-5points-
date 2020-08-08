@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const io = require('socket.io-client')
 const socket = io('http://localhost:5000')
+const Conversation = require('../models/Conversation')
+const Message = require('../models/Message')
 
 exports.registerUser = async (req, res) => {
 
@@ -62,7 +64,12 @@ exports.userLogin = async (req, res) => {
                     username: user.username,
                     _id: user._id
                 }, process.env.JWT_SECRET_KEY)
-                res.status(200).json({ message: 'user logged successfully logged in', token: generatedToken })
+                const conversations = await Conversation.find({ users: { "$in": [user._id] } })
+                conversations.forEach(async (conversation) => {
+                    await Message.updateMany({ conversation: conversation._id, reception: false }, { $set: { reception: true } })
+
+                })
+                res.status(200).json({ user: user, token: generatedToken })
             }
             else
                 res.status(401).json({ message: 'Authentification failed' })
@@ -73,7 +80,7 @@ exports.userLogin = async (req, res) => {
             res.status(401).json({ message: 'Authentification failed' })
 
     } catch (error) {
-        console.log(error.message)
+        console.log(error)
         res.status(500).json({ error: error.meesage })
 
     }

@@ -19,7 +19,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 mongoose.connect(process.env.MONGO_INFO, {
     useUnifiedTopology: true,
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    useFindAndModify: false
 })
 
 app.use('/user', userRoutes)

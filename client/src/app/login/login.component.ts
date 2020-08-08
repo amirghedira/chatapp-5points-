@@ -22,10 +22,11 @@ export class loginComponent implements OnInit {
     }
     onConnect() {
         this.UserService.userLogin(this.username, this.password).subscribe(((response: any) => {
+            console.log(response)
             sessionStorage.setItem('token', response.body.token)
             this.UserService.setSesstion()
             this.ConversationService.setSesstion()
-            this.UserService.login(response.body.token)
+            this.UserService.login(response.body.user)
             this.router.navigate(['/chat']);
         }), (error) => {
             Swal.fire({

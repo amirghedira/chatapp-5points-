@@ -12,9 +12,11 @@ import { HttpClientModule } from '@angular/common/http';
 import { NavbarComponent } from './navbar/navbar.component';
 import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 import { AppRoutes } from './app.routing';
+import { PickerModule, EmojiFrequentlyService, EmojiSearch } from '@ctrl/ngx-emoji-mart';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
 import { RouterModule } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { EmojiModule, EmojiComponent, EmojiService } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 
 const config: SocketIoConfig = { url: 'http://localhost:5000' };
 
@@ -35,10 +37,11 @@ const config: SocketIoConfig = { url: 'http://localhost:5000' };
         FormsModule,
         HttpClientModule,
         AutosizeModule,
+        PickerModule,
         BrowserAnimationsModule,
         NgbModule
     ],
-    providers: [UserService, ConversationService],
+    providers: [UserService, ConversationService, EmojiFrequentlyService, EmojiService, EmojiSearch],
     bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -55,6 +55,14 @@ export class ConversationService {
             headers: headers
         })
     }
+    sendVocalMessage(convId: string, file: any) {
+        const headers = new HttpHeaders().set('Authorization', this.token);
+        const fd = new FormData()
+        fd.append('audio', file)
+        return this.http.post('http://localhost:5000/conversation/vocal/' + convId, fd, {
+            headers: headers
+        })
+    }
     createConversation(destUserid: string) {
         const headers = new HttpHeaders().set('Authorization', this.token);
 
