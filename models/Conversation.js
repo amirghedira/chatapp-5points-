@@ -8,6 +8,7 @@ const ConversationSchema = new mongoose.Schema({
     pseudos: [{ userid: mongoose.Types.ObjectId, content: String }],
     color: { type: String, required: true, default: "rgb(0, 132, 255)" },
     archived: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
+    emoji: { type: String, default: '👍' },
     blocked: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
     deleted: [{ user: { type: mongoose.Types.ObjectId, ref: 'User' }, lastMessage: { type: mongoose.Types.ObjectId, ref: 'Message' } }]
 

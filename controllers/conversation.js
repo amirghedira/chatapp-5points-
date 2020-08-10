@@ -25,11 +25,11 @@ exports.sendVocalMessage = async (req, res) => {
             conversation: conversation._id,
             sender: req.user._id,
             date: new Date().toISOString(),
-            audio: result.secure_url
+            audio: result.secure_url.split('webm')[0] + 'mp3'
         })
         const createdMessage = await message.save()
-        conversation.messages.push(message)
-        const updatedConversation = await conversation.save()
+        conversation.messages.push(createdMessage)
+        await conversation.save()
         res.status(200).json({ message: createdMessage })
     })
 }
@@ -259,7 +259,6 @@ exports.getUserConversations = async (req, res) => {
         const conversations = await Conversation.find({ $and: [{ users: { "$in": [req.user._id] } }, { archived: { "$nin": [req.user._id] } }] }).populate('users').populate('messages').exec()
         conversations.forEach(conversation => {
             conversation = filterConversationMessages(conversation, req.user._id)
-
         })
         res.status(200).json({ conversations: conversations })
 
@@ -292,6 +291,30 @@ exports.setMsgReceived = async (req, res) => {
         message.reception = true
         socket.emit('message-received', { userid: req.body.receptor, message })
         res.status(200).json({ message: 'done' })
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+
+    }
+}
+
+exports.updateConversationEmoji = async (req, res) => {
+
+    try {
+        const conversation = await Conversation.updateOne({ _id: req.params.id }, { $set: { emoji: req.body.emoji } })
+        res.status(200).json({ message: 'conversation emoji updated' })
+
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+
+    }
+}
+
+exports.deleteMessage = async (req, res) => {
+    try {
+        await Message.updateOne({ _id: req.params.id }, { $set: { available: false } })
+        res.status(200).json({ message: 'message successfully deleted' })
+
+
     } catch (error) {
         res.status(500).json({ error: error.message })
 

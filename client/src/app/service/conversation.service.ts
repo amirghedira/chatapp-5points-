@@ -97,9 +97,21 @@ export class ConversationService {
             headers: headers
         })
     }
+    changeConversationEmoji(convId: string, emoji: string) {
+        const headers = new HttpHeaders().set('Authorization', this.token);
+        return this.http.patch(`http://localhost:5000/conversation/emoji/${convId}`, { emoji }, {
+            headers: headers
+        })
+    }
     blockUserConversation(convId: string, userid: string) {
         const headers = new HttpHeaders().set('Authorization', this.token);
         return this.http.patch(`http://localhost:5000/conversation/block/${convId}`, { userid }, {
+            headers: headers
+        })
+    }
+    deleteMessage(messageId) {
+        const headers = new HttpHeaders().set('Authorization', this.token);
+        return this.http.delete(`http://localhost:5000/conversation/message/${messageId}`, {
             headers: headers
         })
     }

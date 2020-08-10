@@ -3,6 +3,7 @@ import { signUpComponent } from './signup/signup.component'
 import { AppComponent } from './app.component';
 import { loginComponent } from './login/login.component';
 import { mainPageComponent } from './mainpage/mainpage.component';
+import { ProfileSettingsComponent } from './profileSettings/profilesettings.component';
 
 
 export const AppRoutes: Routes = [
@@ -21,6 +22,10 @@ export const AppRoutes: Routes = [
         path: 'chat',
         component: mainPageComponent,
 
+    },
+    {
+        path: 'settings',
+        component: ProfileSettingsComponent,
     },
     {
         path: '**',

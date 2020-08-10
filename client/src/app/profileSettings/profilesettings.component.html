@@ -1,0 +1,90 @@
+<div>
+  <div *ngIf="showModal">
+    <div class="backdrop-container" (click)="onShowModal(false)">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4>
+          modalTitle
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <input class="modal-input" placeholder="Amir Ghedira" />
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onShowModal(false)">Annuler</button>
+          <button class="button-danger" (click)="saveHandler()">Enregister</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-12 col-md-12">
+    <div class="profile-box">
+      <div class="profile-info-container">
+        <div style="display: flex;justify-content: center;align-items: center;">
+          <div class="image-container">
+            <div class="edit-image-container">
+              <i class="far fa-edit edit-image-icon" (click)="uploadImage.click()"></i>
+            </div>
+            <img src="assets/img/users/6.jpg" class="img-responsive img-circle" style="width: 150px;height: 150px;"
+              alt="">
+          </div>
+        </div>
+        <div style="display: flex;justify-content: center;align-items: center;padding-top: 10px;">
+          <h4 class="user-name">
+            amir ghedira
+          </h4>
+        </div>
+        <div style="display: flex;justify-content: center;align-items: center;">
+          <h4 class="field-title">
+            Member since: <span class="field-content">ez</span>
+          </h4>
+        </div>
+        <div style="margin-top: 20px;">
+          <div class="field-container">
+            <h4 class="field-title">
+              Username: <span class="field-content">ezez</span>
+              <i class="far fa-edit edit-icon"></i>
+            </h4>
+
+          </div>
+          <div class="field-container">
+            <h4 class="field-title">
+              name: <span class="field-content">ezez</span>
+              <i class="far fa-edit edit-icon"></i>
+            </h4>
+
+          </div>
+          <div class="field-container">
+            <h4 class="field-title">
+              Surname: <span class="field-content">ezez</span>
+              <i class="far fa-edit edit-icon"></i>
+            </h4>
+          </div>
+          <div class="field-container">
+            <h4 class="field-title">
+              Password: <span class="field-content">*********</span>
+              <i class="far fa-edit edit-icon"></i>
+            </h4>
+          </div>
+          <div class="field-container">
+            <h4 class="field-title">
+              Phone: <span class="field-content">ezez</span>
+              <i class="far fa-edit edit-icon"></i>
+            </h4>
+
+          </div>
+          <div class="field-container">
+            <h4 class="field-title">
+              Address: <span class="field-content">ezez</span>
+              <i class="far fa-edit edit-icon"></i>
+            </h4>
+
+          </div>
+        </div>
+      </div>
+      <input type="file" #uploadImage style="display: none;" />
+    </div>
+  </div>
+</div>

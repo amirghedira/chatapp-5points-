@@ -1,7 +1,7 @@
 <nav *ngIf="!loading" class="navbar">
   <div style="display: flex;justify-content: space-between;align-items: center;width: 100%;">
     <div style="width: 100%;">
-      <h4>Messanger</h4>
+      <h4 [routerLink]="['/chat']" style="cursor: pointer;outline: none;">Messanger</h4>
     </div>
     <div *ngIf="!status" style="width: 100%;display: flex;justify-content: flex-end;align-items: center;">
       <button class="login-button" [routerLink]="['/login']">Login</button>
@@ -18,7 +18,7 @@
           </h4>
         </div>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-          <button class="dropdown-item">Settings</button>
+          <button class="dropdown-item" [routerLink]="['/settings']">Settings</button>
           <button class="dropdown-item" (click)="onDisconnect()">Disconnect</button>
         </div>
       </div>

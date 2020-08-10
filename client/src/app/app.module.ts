@@ -12,18 +12,19 @@ import { HttpClientModule } from '@angular/common/http';
 import { NavbarComponent } from './navbar/navbar.component';
 import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 import { AppRoutes } from './app.routing';
-import { PickerModule, EmojiFrequentlyService, EmojiSearch } from '@ctrl/ngx-emoji-mart';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
 import { RouterModule } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { EmojiModule, EmojiComponent, EmojiService } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { PickerModule, EmojiFrequentlyService, EmojiSearch } from '@ctrl/ngx-emoji-mart';
+import { ProfileSettingsComponent } from './profileSettings/profilesettings.component';
+import { EmojiService } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 
 const config: SocketIoConfig = { url: 'http://localhost:5000' };
 
 
 @NgModule({
     declarations: [
-        AppComponent, signUpComponent, loginComponent, mainPageComponent, NavbarComponent
+        AppComponent, signUpComponent, loginComponent, mainPageComponent, NavbarComponent, ProfileSettingsComponent
     ],
 
     imports: [
@@ -41,7 +42,7 @@ const config: SocketIoConfig = { url: 'http://localhost:5000' };
         BrowserAnimationsModule,
         NgbModule
     ],
-    providers: [UserService, ConversationService, EmojiFrequentlyService, EmojiService, EmojiSearch],
+    providers: [UserService, ConversationService, EmojiFrequentlyService, EmojiSearch, EmojiService],
     bootstrap: [AppComponent]
 })
 export class AppModule { }

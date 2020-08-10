@@ -5,8 +5,8 @@ import { Router } from '@angular/router';
 import { switchMap, distinctUntilChanged, debounceTime } from 'rxjs/operators'
 import { Observable, timer, BehaviorSubject } from 'rxjs';
 import * as moment from 'moment';
-import { SafeUrl } from '@angular/platform-browser';
-
+import { EmojiConvertor } from 'emoji-js'
+import { Howl } from 'howler';
 declare var MediaRecorder: any;
 
 moment.locale('fr')
@@ -54,13 +54,32 @@ export class mainPageComponent implements OnInit, OnDestroy {
     openPseudoModal: boolean;
     openColorsModal: boolean;
     openMicroPopUp: boolean;
+    audioDuration: number;
+    openMessageMenuControls: any;
+    openEmojiModal: boolean;
+    VocalMessageSound: Howl;
+    sound: Howl;
+    conversationAudios: any;
     @ViewChild('inputMessage', { static: false }) inputMessage: ElementRef;
+    @ViewChild('audioMessage', { static: false }) audioMsg: ElementRef;
+
 
     time: number = 0;
-    recordDuration: string;
+    recordDuration: any;
     saveRecordAudio: boolean;
     interval;
-
+    emoji;
+    showEmojiPicker = false;
+    sets = [
+        'native',
+        'google',
+        'twitter',
+        'facebook',
+        'emojione',
+        'apple',
+        'messenger'
+    ]
+    set = 'twitter';
 
 
     constructor(private UserService: UserService, private conversationService: ConversationService, private router: Router) {
@@ -80,13 +99,21 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.videosToSend = [];
         this.currentMessage = '';
         this.selectedProfileInfo = false;
+        this.selectedConversation = false;
         this.searchTerms = '';
         this.loading = true;
         this.loadingSearch = false;
         this.focusConversation = {};
         this.isRecordingVocal = false;
+        this.openMessageMenuControls = []
         this.loadingMessages = true;
-        this.recordDuration = '00:00'
+        this.recordDuration = '00';
+        this.conversationAudios = []
+        this.emoji = new EmojiConvertor();
+        this.audioDuration = 0;
+        this.sound = new Howl({
+            src: ['/assets/audio/message-notif.mp3'],
+        });
         this.UserService.newUserAdded().subscribe((newuser) => {
             this.users = [...this.users, newuser]
 
@@ -132,7 +159,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
             })
         this.UserService.messageReceived()
             .subscribe((message: any) => {
-
+                this.sound.play()
                 if (this.currentConversation && this.currentConversation._id == message.conversation) {
                     const msgIndex = this.currentConversation.messages.findIndex(msg => msg._id == message._id)
                     this.currentConversation.messages[msgIndex] = message
@@ -160,6 +187,30 @@ export class mainPageComponent implements OnInit, OnDestroy {
 
             });
 
+    }
+
+    getDuration(messageId) {
+        const messageAudioIndex = this.conversationAudios.findIndex(convAudio => convAudio.messageId == messageId)
+
+        return this.conversationAudios[messageAudioIndex].audio._duration;
+    }
+    transfromDuration(duration) {
+        return duration > 10 ? '0:' + duration.toFixed() : '0:0' + duration.toFixed()
+    }
+
+    convertMessage(e) {
+        if (e.target.value[0] == '\n')
+            return
+        if (e.target.value[e.target.value.length - 1] == '\n' && e.target.value.length > 1) {
+            this.onSendMessage()
+            return;
+        }
+        this.currentMessage = this.emoji.replace_colons(e.target.value);
+
+    }
+    sendSingleEmoji() {
+        this.currentMessage = this.currentConversation.emoji
+        this.onSendMessage()
     }
     formatSeenDate(date: string) {
         const nowDate = new Date();
@@ -195,6 +246,15 @@ export class mainPageComponent implements OnInit, OnDestroy {
 
         }
         return moment(new Date(date)).format('DD MMMM YYYY')
+    }
+    toggleEmojiPicker() {
+        this.showEmojiPicker = !this.showEmojiPicker;
+    }
+
+    addEmoji(event) {
+
+        this.currentMessage = `${this.currentMessage}${event.emoji.native}`;
+        this.showEmojiPicker = false;
     }
     transformDateMessage(date) {
         const _Date = new Date(date);
@@ -311,6 +371,27 @@ export class mainPageComponent implements OnInit, OnDestroy {
             this.router.navigate(['/login'])
 
     }
+    getVocalWidth(messageId) {
+        const messageAudioIndex = this.conversationAudios.findIndex(convAudio => convAudio.messageId == messageId)
+        return !this.conversationAudios[messageAudioIndex].audio.playing() ? '0' : '100%'
+    }
+    isPlayingVocal(messageId) {
+        const messageAudioIndex = this.conversationAudios.findIndex(convAudio => convAudio.messageId == messageId)
+        return this.conversationAudios[messageAudioIndex].audio.playing()
+    }
+    playVocalMessage(messageId) {
+        const messageAudioIndex = this.conversationAudios.findIndex(convAudio => convAudio.messageId == messageId)
+        this.conversationAudios[messageAudioIndex].audio.play()
+
+    }
+    pauseVocaleMessage(messageId) {
+        const messageAudioIndex = this.conversationAudios.findIndex(convAudio => convAudio.messageId == messageId)
+        this.conversationAudios[messageAudioIndex].audio.pause();
+        var elem = document.getElementById('animated-div')
+        elem.style.animationPlayState = 'paused'
+        elem.style.webkitAnimationPlayState = 'paused';
+
+    }
     checkUserAvailabe() {
 
         if (this.searchTerms == '')
@@ -318,10 +399,34 @@ export class mainPageComponent implements OnInit, OnDestroy {
         if (!this.loadingSearch)
             return this.searchedUsers.length > 0;
     }
+
+    addConversationEmoji(event) {
+        console.log(event.emoji.native)
+        this.currentConversation.emoji = event.emoji.native
+        this.conversationService.changeConversationEmoji(this.currentConversation._id, event.emoji.native)
+            .subscribe(res => {
+                console.log(res)
+            })
+        this.openEmojiModal = false;
+    }
+
+    deleteMessage(messageId) {
+        const messageIndex = this.currentConversation.messages.findIndex(message => message._id == messageId)
+        this.currentConversation.messages[messageIndex].available = false;
+        const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
+        this.userConversations[conversationIndex] = this.currentConversation;
+        this.conversationService.deleteMessage(messageId)
+            .subscribe(res => {
+                console.log(res)
+            })
+    }
+
     onSendMessage() {
+
         const loadingMessage = {
             _id: null, sender: this.connectedUser._id,
-            content: this.currentMessage, images: this.imagesToSend, videos: this.videosToSend, seen: { state: false }
+            content: this.currentMessage, images: this.imagesToSend, videos: this.videosToSend, seen: { state: false },
+            available: true
         }
         if (this.currentConversation._id) {
             const currentMessage = this.currentMessage
@@ -362,6 +467,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
             container.scrollTop = container.scrollHeight;
         }, (1));
         (<HTMLInputElement>document.getElementById('uploadimage')).value = '';
+
 
     }
     getLoadingImageStatus(messageId) {
@@ -412,6 +518,20 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
         this.selectedConversation = true;
         this.selectedProfileInfo = false;
+        this.currentConversation.messages.forEach(message => {
+            if (message.audio) {
+                const messageAudio = {
+                    messageId: message._id, audio: new Howl({
+                        src: [message.audio]
+                    })
+                }
+                this.conversationAudios.push(messageAudio)
+
+            }
+        })
+        this.currentConversation.messages.forEach(message => {
+            this.openMessageMenuControls[message._id.toString()] = false;
+        })
         setTimeout(() => {
             var container = document.getElementById('conversation-container')
             container.scrollTop = container.scrollHeight;
@@ -438,6 +558,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.saveRecordAudio = withSave;
         this.stopRecordingVocal.next(true)
         this.openMicroPopUp = false;
+        this.recordDuration = '00'
         this.isRecordingVocal = false;
     }
     startTimer() {
@@ -450,13 +571,17 @@ export class mainPageComponent implements OnInit, OnDestroy {
             this.recordDuration = this.transform(this.time)
         }, 1000);
     }
-    transform(value: number): string {
+    transform(value: number) {
         const minutes: number = Math.floor(value / 60);
         const seconds = (value - minutes * 60) < 10 ? '0' + (value - minutes * 60) : (value - minutes * 60)
-        return '00' + ':' + seconds
+        return seconds
     }
     pauseTimer() {
         clearInterval(this.interval);
+    }
+    stopTimer() {
+        clearInterval(this.interval)
+        this.time = 0
     }
     startRecording() {
 
@@ -471,12 +596,12 @@ export class mainPageComponent implements OnInit, OnDestroy {
                 items.push(e.data)
                 if (microRecorder.state == 'inactive') {
                     if (this.saveRecordAudio) {
-                        var blob = new Blob(items, { type: 'audio/webm' })
+                        var blob = new Blob(items, { type: 'audio/mp3' })
                         items = [];
-                        // this.conversationService.sendVocalMessage(this.currentConversation._id, blob)
-                        //     .subscribe((response: any) => {
-                        //         this.currentConversation.messages.push(response.message)
-                        //     })
+                        this.conversationService.sendVocalMessage(this.currentConversation._id, blob)
+                            .subscribe((response: any) => {
+                                this.currentConversation.messages.push(response.message)
+                            })
                     }
                     this.stopRecordingVocal.complete()
                     sub.unsubscribe()
@@ -487,14 +612,14 @@ export class mainPageComponent implements OnInit, OnDestroy {
             const sub = this.stopRecordingVocal.subscribe(res => {
                 if (res) {
                     microRecorder.stop();
-                    this.pauseTimer()
+                    this.stopTimer()
                     stream.getTracks().forEach(track => track.stop())
                 }
             })
             setTimeout(() => {
                 if (microRecorder.state == 'recording') {
                     microRecorder.stop();
-                    this.pauseTimer()
+                    this.stopTimer()
                     stream.getTracks().forEach(track => track.stop())
                     this.isRecordingVocal = false;
                 }
@@ -536,7 +661,6 @@ export class mainPageComponent implements OnInit, OnDestroy {
     onOpenSearchedConversation(user) {
         this.conversationService.getConversationByUsers(user._id)
             .subscribe((response: any) => {
-                console.log(response.conversation)
                 if (response.conversation) {
                     this.currentConversation = response.conversation;
                     this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
@@ -545,8 +669,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
                     this.searchTerms = '';
                 }
                 else {
-                    console.log(response)
-                    this.currentConversation = { _id: null, users: [{ ...this.connectedUser }, { ...user }], messages: [] }
+                    this.currentConversation = { _id: null, users: [{ ...this.connectedUser }, { ...user }], messages: [], emoji: '👍', blocked: [] }
                     this.destinationUser = 1;
                     this.loadingMessages = false;
                     this.selectedConversation = true;
@@ -682,6 +805,15 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.openBlockMsgModal = status
 
     };
+    onOpenEmojiModal(status: boolean) {
+        this.openEmojiModal = status;
+    }
+    getMessageControls(messageId: string) {
+        return this.openMessageMenuControls[messageId]
+    }
+    openMessageControls(messageId: string) {
+        this.openMessageMenuControls[messageId] = !this.openMessageMenuControls[messageId]
+    }
     onOpenRecordPopUp() {
         this.openMicroPopUp = !this.openMicroPopUp
     };
