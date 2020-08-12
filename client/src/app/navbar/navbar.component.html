@@ -12,7 +12,7 @@
       <div class="dropdown">
         <div style="display: flex; align-items: center;cursor: pointer;" id="dropdownMenuButton" data-toggle="dropdown"
           aria-haspopup="true">
-          <img src="assets/img/users/6.jpg" class="img-circle" alt="">
+          <img [src]="currentUser.profileImg" class="img-circle" alt="">
           <h4 style="margin: 0;padding:10px;">
             {{currentUser.name}} {{currentUser.surname}}
           </h4>

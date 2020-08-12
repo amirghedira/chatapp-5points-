@@ -18,13 +18,14 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PickerModule, EmojiFrequentlyService, EmojiSearch } from '@ctrl/ngx-emoji-mart';
 import { ProfileSettingsComponent } from './profileSettings/profilesettings.component';
 import { EmojiService } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { CallRoomComponent } from './callRoom/call-room.component';
 
 const config: SocketIoConfig = { url: 'http://localhost:5000' };
 
 
 @NgModule({
     declarations: [
-        AppComponent, signUpComponent, loginComponent, mainPageComponent, NavbarComponent, ProfileSettingsComponent
+        AppComponent, signUpComponent, loginComponent, mainPageComponent, NavbarComponent, ProfileSettingsComponent, CallRoomComponent
     ],
 
     imports: [

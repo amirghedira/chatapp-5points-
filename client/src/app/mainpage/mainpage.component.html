@@ -31,6 +31,37 @@
     </div>
   </div>
 
+  <div *ngIf="callReceivedModal">
+    <div class="backdrop-container">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+
+        <h4 class="user-name">
+          Appel entrant
+        </h4>
+      </div>
+      <div class="modal-content-text" style="display: flex;">
+        <img [src]="callerUser.profileImg" alt="" style="height: 80px;width: 80px;border-radius: 50%;">
+        <div style="margin-left: 20px;">
+          <p>
+            {{callerUser.surname}} {{callerUser.name}} vous appelle.
+          </p>
+          <p style="margin-top: 10px;">
+            L'appel commencera des que vous repondez.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="endCall()">Refuser</button>
+          <button class="button-success" (click)="answerCall()">Accepter</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 
 
   <div *ngIf="openIgnoreMessages">
@@ -95,8 +126,8 @@
       <div class="users-container">
 
         <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true, destinationUser)">
-          <img src="assets/img/users/6.jpg" class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;"
-            alt="">
+          <img [src]="currentConversation.users[destinationUser].profileImg" class="img-circle"
+            style="height: 30px;width: 30px;margin-right: 10px;" alt="">
           <h4 class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
             {{currentConversation.users[destinationUser].name}} {{currentConversation.users[destinationUser].surname}}
           </h4>
@@ -271,7 +302,8 @@
                         <span
                           *ngIf="conversation.users[indexUserDest(conversation._id)].connection.status && !checkBlockedConversations(conversation._id)"
                           class="online-status on-picture"></span>
-                        <img src="assets/img/users/6.jpg" class="img-circle" alt="">
+                        <img [src]="conversation.users[indexUserDest(conversation._id)].profileImg" class="img-circle"
+                          alt="">
                       </div>
                       <div class="user-message-info">
                         <div style="align-self: center;">
@@ -319,7 +351,8 @@
 
                         <div *ngIf="focusConversation.id!=conversation._id || !focusConversation.status"
                           class="notification-container">
-                          <img *ngIf="showSeenPicture(conversation._id)" src="assets/img/users/6.jpg"
+                          <img *ngIf="showSeenPicture(conversation._id)"
+                            [src]="conversation.users[indexUserDest(conversation._id)].profileImg"
                             class="seen-message-image" alt="">
                           <span *ngIf="!islastMessageSeen(conversation._id)" class="message-notification"></span>
                         </div>
@@ -337,7 +370,7 @@
                     <div class="user-message-details" (click)="onOpenSearchedConversation(user)">
                       <div class="user-message-img">
                         <span class="online-status on-picture"></span>
-                        <img src="assets/img/users/9.jpg" class="img-circle" alt="">
+                        <img [src]="user.profileImg" class="img-circle" alt="">
                       </div>
                       <div class="user-message-info">
                         <div style="align-self: center;">
@@ -388,7 +421,8 @@
                 <div class="user-message-details" style="align-items: center;justify-content: flex-end">
 
                   <div style="margin-right: 20px;">
-                    <i class="fas fa-phone-alt" style="font-size: 25px;" [style.color]="getConversationColor()"></i>
+                    <i class="fas fa-phone-alt" style="font-size: 25px;" [style.color]="getConversationColor()"
+                      (click)="startCall(this.currentConversation.users[destinationUser]._id)"></i>
                   </div>
                   <div style="display: flex;justify-content: center;align-items: center;margin-right: 10px;">
                     <i class="fas fa-video" style="font-size: 25px;" [style.color]="getConversationColor()">
@@ -404,7 +438,7 @@
               </div>
               <div class="profile-info-container">
                 <div style="display: flex;justify-content: center;align-items: center;">
-                  <img src="assets/img/users/6.jpg" class="img-responsive img-circle"
+                  <img [src]="currentConversation.users[destinationUser].profileImg" class="img-circle"
                     style="width: 100px;height: 100px;" alt="">
                 </div>
                 <div style="display: flex;justify-content: center;align-items: center;padding-top: 10px;">
@@ -504,7 +538,7 @@
               <div class="conversation-header">
                 <div class="user-message-details">
                   <div class="user-message-img">
-                    <img src="assets/img/users/6.jpg" class="img-responsive img-circle" alt="">
+                    <img [src]="currentConversation.users[destinationUser].profileImg" class="img-circle" alt="">
                   </div>
                   <div class="user-message-header">
                     <h4 *ngIf="userHavePseudo()" class="user-name">
@@ -531,9 +565,17 @@
 
 
                   <div style="margin-right: 20px;">
-                    <i class="fas fa-phone-alt" style="font-size: 25px;" [style.color]="getConversationColor()"></i>
+                    <!-- <a [href]="'/room/'+connectedUser._id+'-'+currentConversation.users[destinationUser]._id+'?video=false'"
+                      target="_blank">
+                    </a> -->
+                    <i class="fas fa-phone-alt" style="font-size: 25px;" [style.color]="getConversationColor()"
+                      (click)="callUser()"></i>
                   </div>
+
                   <div style="display: flex;justify-content: center;align-items: center;margin-right: 10px;">
+                    <!-- <a [href]="'/room/'+connectedUser._id+'-'+currentConversation.users[destinationUser]._id+'?video=true'"
+                      target="_blank">
+                    </a> -->
                     <i class="fas fa-video" style="font-size: 25px;" [style.color]="getConversationColor()">
                     </i>
                     <span *ngIf="currentConversation.users[destinationUser].connection.status" class="online-status"
@@ -559,10 +601,10 @@
                   </div>
                   <div style="display: flex;justify-content: center;">
                     <div style="display: flex;">
-                      <img src="assets/img/users/6.jpg" style="border: 2px solid white;" class="image-in-container"
+                      <img [src]="connectedUser.profileImg" style="border: 2px solid white;" class="image-in-container"
                         alt="">
-                      <img src="assets/img/users/6.jpg" style="margin-left: -11px; border: 2px solid white;"
-                        class="image-in-container" alt="">
+                      <img [src]="currentConversation.users[destinationUser].profileImg"
+                        style="margin-left: -11px; border: 2px solid white;" class="image-in-container" alt="">
                     </div>
 
                   </div>
@@ -575,7 +617,8 @@
                     <div *ngIf=" !checkSenderMsg(message.sender)" class="convo-box convo-left">
                       <div class="convo-area-left">
                         <div style="display: flex; align-items: flex-end;">
-                          <img src="assets/img/users/6.jpg" alt="" class="conversation-user-image">
+                          <img [src]="currentConversation.users[destinationUser].profileImg" alt=""
+                            class="conversation-user-image">
                         </div>
                         <div class="convo-message-left">
                           <div class="convo-message-content" style="display: flex;align-items: center;">
@@ -641,8 +684,8 @@
                       </div>
                       <div *ngIf="isLastSeenMsg(message)"
                         style="display: flex;justify-content: flex-end; align-items: center;padding-right: 5px;">
-                        <img src="assets/img/users/6.jpg" alt="" class="conversation-user-image"
-                          style="height: 15px;width: 15px;">
+                        <img [src]="currentConversation.users[destinationUser].profileImg" alt=""
+                          class="conversation-user-image" style="height: 15px;width: 15px;">
 
                       </div>
                     </div>
@@ -728,8 +771,8 @@
                               style="font-size: 11px;color: #999999;"></i>
                           </div>
                           <div *ngIf="isLastSeenMsg(message)">
-                            <img src="assets/img/users/6.jpg" alt="" class="conversation-user-image"
-                              style="height: 15px;width: 15px;">
+                            <img [src]="currentConversation.users[destinationUser].profileImg" alt=""
+                              class="conversation-user-image" style="height: 15px;width: 15px;">
 
                           </div>
                         </div>
@@ -849,6 +892,8 @@
       <input type="file" id="uploadimage" style="display: none;" (change)="handlefileInput($event.target.files)"
         multiple />
 
+    </div>
+    <div id="videoGrid">
     </div>
   </div>
 </section>

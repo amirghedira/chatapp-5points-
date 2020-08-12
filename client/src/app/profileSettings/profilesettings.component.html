@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="userProfile">
   <div *ngIf="showModal">
     <div class="backdrop-container" (click)="onShowModal(false)">
     </div>
@@ -27,18 +27,18 @@
             <div class="edit-image-container">
               <i class="far fa-edit edit-image-icon" (click)="uploadImage.click()"></i>
             </div>
-            <img src="assets/img/users/6.jpg" class="img-responsive img-circle" style="width: 150px;height: 150px;"
+            <img [src]="userProfile.profileImg" class="img-responsive img-circle" style="width: 150px;height: 150px;"
               alt="">
           </div>
         </div>
         <div style="display: flex;justify-content: center;align-items: center;padding-top: 10px;">
           <h4 class="user-name">
-            amir ghedira
+            {{userProfile.surname}} {{userProfile.name}}
           </h4>
         </div>
         <div style="display: flex;justify-content: center;align-items: center;">
           <h4 class="field-title">
-            Member since: <span class="field-content">ez</span>
+            Member since: <span class="field-content">{{userProfile.joinDate}}</span>
           </h4>
         </div>
         <div style="margin-top: 20px;">
@@ -84,7 +84,7 @@
           </div>
         </div>
       </div>
-      <input type="file" #uploadImage style="display: none;" />
+      <input type="file" #uploadImage style="display: none;" (change)="uploadFileHandler($event.target.files[0])" />
     </div>
   </div>
 </div>

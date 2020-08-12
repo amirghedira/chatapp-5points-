@@ -4,6 +4,7 @@ import { AppComponent } from './app.component';
 import { loginComponent } from './login/login.component';
 import { mainPageComponent } from './mainpage/mainpage.component';
 import { ProfileSettingsComponent } from './profileSettings/profilesettings.component';
+import { CallRoomComponent } from './callRoom/call-room.component';
 
 
 export const AppRoutes: Routes = [
@@ -22,6 +23,10 @@ export const AppRoutes: Routes = [
         path: 'chat',
         component: mainPageComponent,
 
+    },
+    {
+        path: 'room/:id',
+        component: CallRoomComponent
     },
     {
         path: 'settings',

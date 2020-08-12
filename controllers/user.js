@@ -1,4 +1,3 @@
-const mongoose = require('mongoose')
 const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -6,6 +5,7 @@ const io = require('socket.io-client')
 const socket = io('http://localhost:5000')
 const Conversation = require('../models/Conversation')
 const Message = require('../models/Message')
+const cloudinary = require('../middleware/cloudinary')
 
 exports.registerUser = async (req, res) => {
 
@@ -26,6 +26,67 @@ exports.registerUser = async (req, res) => {
         res.status(500).json({ error: error.meesage })
 
     }
+}
+
+exports.getUser = async (req, res) => {
+
+    try {
+
+        const user = await User.findById(req.params.id)
+        if (user)
+            res.status(200).json(user)
+        else
+            res.status(404).json({ message: 'user not found' })
+    } catch (error) {
+        res.status(500).json({ error: error.meesage })
+
+    }
+}
+
+exports.updateUserInfo = async (req, res) => {
+
+    try {
+        const updatedUser = await User.findByIdAndUpdate(req.user._id, { $set: { ...req.body.user } })
+        res.status(200).json({ updatedUser })
+    } catch (error) {
+        res.status(500).json({ error: error.meesage })
+
+    }
+}
+
+exports.updateUserPassword = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.user._id)
+        if (user) {
+            const match = await bcrypt.compare(req.body.oldPassword, user.password)
+            if (match) {
+                const newPassword = await bcrypt.hash(req.body.newPassword, 12)
+                user.password = newPassword
+                await user.save()
+                res.status(200).json({ message: 'user password successfully updated' })
+            } else {
+                res.status(401).json({ message: 'wrong password' })
+            }
+        }
+        else
+            res.status(404).json({ message: 'user not found' })
+
+
+    } catch (error) {
+        res.status(500).json({ error: error.meesage })
+
+    }
+}
+
+exports.updateProfileImg = async (req, res) => {
+    cloudinary.uploader.upload_large(req.files.profileImage.tempFilePath, { resource_type: 'image' }, async (err, result) => {
+        if (err)
+            return res.status(500).json({ message: 'upload failed' })
+
+        await User.updateOne({ _id: req.user._id }, { $set: { profileImg: result.secure_url } })
+        res.status(200).json({ imageUrl: result.secure_url })
+    })
 }
 
 exports.getUserBytoken = async (req, res) => {

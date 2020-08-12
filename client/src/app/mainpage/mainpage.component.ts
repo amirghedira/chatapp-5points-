@@ -18,7 +18,6 @@ moment.locale('fr')
     styleUrls: ['./mainpage.component.css']
 })
 
-
 export class mainPageComponent implements OnInit, OnDestroy {
 
 
@@ -41,6 +40,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
     isRecordingVocal: boolean;
     currentConversation: any;
     selectedConversation: boolean;
+    callerUser: any
     focusConversation: {};
     loadingSearch: boolean;
     destinationUser: number;
@@ -58,7 +58,10 @@ export class mainPageComponent implements OnInit, OnDestroy {
     openMessageMenuControls: any;
     openEmojiModal: boolean;
     VocalMessageSound: Howl;
-    sound: Howl;
+    callReceivedModal: boolean;
+    callWindow: Window;
+    messageReceivedSound: Howl;
+    callReceivedSound: Howl;
     conversationAudios: any;
     @ViewChild('inputMessage', { static: false }) inputMessage: ElementRef;
     @ViewChild('audioMessage', { static: false }) audioMsg: ElementRef;
@@ -105,20 +108,36 @@ export class mainPageComponent implements OnInit, OnDestroy {
         this.loadingSearch = false;
         this.focusConversation = {};
         this.isRecordingVocal = false;
+        this.callReceivedModal = false;
         this.openMessageMenuControls = []
         this.loadingMessages = true;
         this.recordDuration = '00';
         this.conversationAudios = []
         this.emoji = new EmojiConvertor();
         this.audioDuration = 0;
-        this.sound = new Howl({
+        this.messageReceivedSound = new Howl({
             src: ['/assets/audio/message-notif.mp3'],
+
+        });
+        this.callReceivedSound = new Howl({
+            src: ['/assets/audio/call-ring.mp3'],
+            loop: true
         });
         this.UserService.newUserAdded().subscribe((newuser) => {
             this.users = [...this.users, newuser]
 
         });
+        this.UserService.onCallEnded()
+            .subscribe(res => {
+                // this.callReceivedSound.stop()
+                this.callReceivedModal = false;
 
+            })
+        this.UserService.onCloseCallWindow()
+            .subscribe(res => {
+                console.log(res)
+                this.callWindow.close()
+            })
         this.UserService.userHasConnected()
             .subscribe(userid => {
                 this.userConversations = this.userConversations.map(conversation => {
@@ -159,12 +178,21 @@ export class mainPageComponent implements OnInit, OnDestroy {
             })
         this.UserService.messageReceived()
             .subscribe((message: any) => {
-                this.sound.play()
+                this.messageReceivedSound.play()
                 if (this.currentConversation && this.currentConversation._id == message.conversation) {
                     const msgIndex = this.currentConversation.messages.findIndex(msg => msg._id == message._id)
                     this.currentConversation.messages[msgIndex] = message
                 }
 
+            })
+        this.UserService.userIsCalling()
+            .subscribe(userId => {
+                this.UserService.getUserById(userId)
+                    .subscribe(user => {
+                        this.callerUser = user
+                        this.callReceivedModal = true;
+                        // this.callReceivedSound.play()
+                    })
             })
         this.UserService.newMessage()
             .subscribe((newConversation: any) => {
@@ -357,6 +385,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
         if (this.UserService.token)
             this.UserService.getConnectUser().subscribe((result: any) => {
                 this.connectedUser = result.user
+
                 this.conversationService.getUserConversations().subscribe((response: any) => {
                     this.userConversations = response.conversations.sort((c1: any, c2: any) => {
                         const messagedate1 = c1.messages[c1.messages.length - 1].date;
@@ -369,6 +398,7 @@ export class mainPageComponent implements OnInit, OnDestroy {
             })
         else
             this.router.navigate(['/login'])
+
 
     }
     getVocalWidth(messageId) {
@@ -510,6 +540,21 @@ export class mainPageComponent implements OnInit, OnDestroy {
             return 'Vous avez récu un message vocal.'
         }
     }
+    callUser(user) {
+        this.callWindow = window.open(`/room/${this.connectedUser._id}-${this.currentConversation.users[this.destinationUser]._id}?video=false&call=true`, '_blank');
+    }
+
+    endCall() {
+        this.callReceivedSound.stop()
+        this.callReceivedModal = false
+        this.UserService.endCall(this.callerUser, false)
+    }
+    answerCall() {
+        this.callReceivedSound.stop()
+        this.callReceivedModal = false
+        window.open(`/room/${this.callerUser._id}-${this.connectedUser._id}?video=false&call=false`, '_blank');
+    }
+
     onOpenConvers(conversationId) {
         this.currentMessage = '';
         const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == conversationId)
