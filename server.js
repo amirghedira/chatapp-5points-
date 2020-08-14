@@ -67,26 +67,36 @@ server.listen(process.env.PORT || 5000, () => {
                     socket.broadcast.to(socketId).emit('message-received', data.message)
                 })
         })
-        socket.on('user-disconnected', (obj) => {
+        socket.on('user-disconnected', async (obj) => {
             const userindex = ConnectedUsers.findIndex(connecteduser => {
                 return connecteduser.userid === obj.userid
             })
-            console.log(userindex)
-            console.log(ConnectedUsers[userindex])
-            console.log('==================================')
             if (userindex >= 0) {
-                socket.broadcast.emit('user-disconnected', obj)
-                ConnectedUsers.splice(userindex, 1)
+                if (ConnectedUsers[userindex].socketIds.length > 1) {
+                    const socketIdIndex = ConnectedUsers[userindex].socketIds.findIndex(socketId => socketId == socket.id)
+                    ConnectedUsers[userindex].socketIds.splice(socketIdIndex, 1)
+                } else {
+
+                    console.log(userindex)
+                    console.log(ConnectedUsers[userindex])
+                    console.log('==================================')
+                    const lastVisitDate = new Date().toISOString()
+                    await User.updateOne({ _id: ConnectedUsers[userindex].userid }, { $set: { connection: { status: false, lastVisit: lastVisitDate } } })
+                    socket.broadcast.emit('user-disconnected', { userid: ConnectedUsers[userindex].userid, lastVisit: lastVisitDate })
+                    ConnectedUsers.splice(userindex, 1)
+
+                }
+
             }
         })
-        socket.on('call-user', (callerUserId, callReceiverId) => {
+        socket.on('call-user', (callerUserId, callReceiverId, isVideoCall) => {
             const userDestindex = ConnectedUsers.findIndex(connecteduser => {
                 return connecteduser.userid === callReceiverId
             })
 
             if (userDestindex >= 0) {
                 ConnectedUsers[userDestindex].socketIds.forEach(socketId => {
-                    socket.broadcast.to(socketId).emit('call-user', callerUserId)
+                    socket.broadcast.to(socketId).emit('call-user', callerUserId, isVideoCall)
 
                 })
             }
@@ -135,12 +145,11 @@ server.listen(process.env.PORT || 5000, () => {
                         console.log(userindex)
                         console.log(ConnectedUsers[userindex])
                         console.log('==================================')
-                        if (userindex >= 0) {
-                            const lastVisitDate = new Date().toISOString()
-                            await User.updateOne({ _id: ConnectedUsers[userindex].userid }, { $set: { connection: { status: false, lastVisit: lastVisitDate } } })
-                            socket.broadcast.emit('user-disconnected', { userid: ConnectedUsers[userindex].userid, lastVisit: lastVisitDate })
-                            ConnectedUsers.splice(userindex, 1)
-                        }
+                        const lastVisitDate = new Date().toISOString()
+                        await User.updateOne({ _id: ConnectedUsers[userindex].userid }, { $set: { connection: { status: false, lastVisit: lastVisitDate } } })
+                        socket.broadcast.emit('user-disconnected', { userid: ConnectedUsers[userindex].userid, lastVisit: lastVisitDate })
+                        ConnectedUsers.splice(userindex, 1)
+
                     }
                 }
             }

@@ -153,8 +153,8 @@ export class UserService {
         );
         return observable;
     }
-    callUser(callerUserId, receiverUserId) {
-        this.socket.emit('call-user', callerUserId, receiverUserId)
+    callUser(callerUserId, receiverUserId, isVideoCall) {
+        this.socket.emit('call-user', callerUserId, receiverUserId, isVideoCall)
     }
     onCallEnded() {
         let observable = new Observable(
@@ -186,8 +186,8 @@ export class UserService {
     userIsCalling() {
         let observable = new Observable(
             (observer) => {
-                this.socket.on('call-user', (data) => {
-                    observer.next(data);
+                this.socket.on('call-user', (userId, isVideoCall) => {
+                    observer.next({ userId, isVideoCall });
                 });
                 return () => this.socket.disconnect();
             }

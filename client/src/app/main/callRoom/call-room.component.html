@@ -1,0 +1,62 @@
+<div class="containerSelfVideo" [style.background-color]="isVideoCall ? 'rgb(28, 30, 33)' : 'transparent'">
+  <video id="userVideo" class="selfVideoPlayer" [style.display]="isCameraOpen ? 'inline' : 'none'" height="200px"
+    width="200px">
+    <source>
+  </video>
+</div>
+<div class="containerUserVideo">
+  <video class="userVideoPlayer" id="otherUserVideo" [style.display]="isCameraOpen ? 'inline' : 'none'">
+    <source>
+  </video>
+</div>
+<div class="main-div">
+  <div class="row">
+    <div class="col-12">
+      <div class="user-info-container">
+        <img [src]="userCallDes?.profileImg" class="user-image" />
+      </div>
+      <div style="margin-top: 30px;" class="user-info-container">
+        <p style="font-weight: 800;font-size: 18px;" [style.color]="isVideoCall? 'white': 'black'">
+          {{userCallDes?.surname}} {{userCallDes?.name}}.</p>
+      </div>
+      <div class="user-info-container">
+        <p style="color: #999999;">{{callState}}</p>
+      </div>
+      <div class="main-buttons-container">
+        <div *ngIf="callStatus" class="buttons-bar-container">
+          <div class="button-control-container" [style.border-color]="!isCameraOpen? '#999999' : '#0084ff'"
+            [style.background-color]="isCameraOpen? '#0084ff' : 'white' ">
+            <i [ngClass]="isCameraOpen? 'fas fa-video media-control-icon media-active' : 'fas fa-video-slash media-control-icon'"
+              (click)="onOpenAndCloseCamera(!isCameraOpen)"></i>
+          </div>
+          <div class="button-control-container" style="margin: 30px 30px;"
+            [style.border-color]="!isMicroOpen? '#999999' : '#0084ff'"
+            [style.background-color]="isMicroOpen? '#0084ff' : 'white'">
+            <i [ngClass]="isMicroOpen? 'fas fa-microphone media-control-icon media-active' : 'fas fa-microphone-slash media-control-icon'"
+              (click)="onOpenAndCloseMicro(!isMicroOpen)"></i>
+
+          </div>
+          <div class="button-control-container" style="background-color: #f03d25;">
+            <i class=" fas fa-phone endcall-icon" (click)="endCall()"></i>
+          </div>
+        </div>
+        <div *ngIf="!callStatus" class="call-ended-container">
+          <div class="call-ended-buttons-container">
+            <div class="recompose-button-container">
+              <i class=" fas fa-phone recompose-icon" (click)="endCall()"></i>
+            </div>
+            <p style="max-width:80px;"> Recomposer le numéro</p>
+
+          </div>
+          <div class="call-ended-buttons-container">
+            <div class="close-button-container">
+              <i class="fas fa-times close-icon" (click)="closeCallWindow()"></i>
+            </div>
+            <p>Fermer</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
