@@ -16,7 +16,7 @@ export class UserService {
     }
 
     setSesstion() {
-        this.token = sessionStorage.getItem('token')
+        this.token = localStorage.getItem('token')
         if (this.token) this.socket.emit('connectuser', this.token, window.location.href.includes('room'))
 
 
@@ -214,7 +214,7 @@ export class UserService {
     disconnectUser() {
         const headers = new HttpHeaders().set('Authorization', this.token);
         this.token = null;
-        sessionStorage.clear()
+        localStorage.clear()
         return this.http.patch('http://localhost:5000/user/disconnect', null, { headers: headers })
     }
 }

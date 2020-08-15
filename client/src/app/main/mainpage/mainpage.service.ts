@@ -16,16 +16,17 @@ export class MainPageService {
 
     getConnectUser() {
 
-        const headers = new HttpHeaders().set('Authorization', this.token);
 
-        return this.http.get('http://localhost:5000/user/bytoken', { headers: headers })
+        return this.http.get('http://localhost:5000/user/bytoken')
     }
     updateUserProfileImg(image) {
-        const headers = new HttpHeaders().set('Authorization', this.token);
         const fd = new FormData()
         fd.append('profileImage', image)
-        return this.http.patch(`http://localhost:5000/user/image/`, fd, {
-            headers: headers
-        })
+        return this.http.patch(`http://localhost:5000/user/image/`, fd)
+    }
+    disconnectUser(userId) {
+        this.token = null;
+        localStorage.clear()
+        return this.http.patch('http://localhost:5000/user/disconnect', { userId })
     }
 }

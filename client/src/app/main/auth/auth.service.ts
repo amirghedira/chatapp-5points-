@@ -12,12 +12,13 @@ export class AuthService {
     userConnected = this.userCon.asObservable();
     private closeCallWindow = new BehaviorSubject(null);
     constructor(private http: HttpClient, private socket: Socket) {
-        this.token = sessionStorage.getItem('token')
+        this.token = localStorage.getItem('token')
+
     }
 
     setSesstion(token) {
         this.token = token;
-        sessionStorage.setItem('token', token)
+        localStorage.setItem('token', token)
         if (this.token) this.socket.emit('connectuser', this.token, window.location.href.includes('room'))
 
 

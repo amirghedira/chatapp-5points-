@@ -384,8 +384,6 @@ export class MessengerComponent implements OnInit, OnDestroy {
 
         this.messengerService.getConnectUser().subscribe((result: any) => {
             this.connectedUser = result.user
-            console.log(result)
-
             this.messengerService.getUserConversations().subscribe((response: any) => {
                 this.userConversations = response.conversations.sort((c1: any, c2: any) => {
                     const messagedate1 = c1.messages[c1.messages.length - 1].date;

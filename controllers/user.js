@@ -149,8 +149,8 @@ exports.userLogin = async (req, res) => {
 exports.disconnectUser = async (req, res) => {
     try {
         const lastVisitDate = new Date().toISOString()
-        await User.updateOne({ _id: req.user._id }, { $set: { connection: { status: false, lastVisit: lastVisitDate } } })
-        socket.emit('user-disconnected', { userid: req.user._id, lastVisit: lastVisitDate })
+        await User.updateOne({ _id: req.body.userId }, { $set: { connection: { status: false, lastVisit: lastVisitDate } } })
+        socket.emit('user-disconnected', { userid: req.body.userId, lastVisit: lastVisitDate })
         res.status(200).json({ message: 'user disconnected' })
     } catch (error) {
         res.status(500).json({ error: error.meesage })

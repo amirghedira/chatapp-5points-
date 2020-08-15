@@ -11,7 +11,7 @@ router.get('/socket', (req, res) => {
 })
 router.post('/', userController.registerUser)
 router.get('/search-users', checkAuth, userController.searchUsers)
-router.patch('/disconnect', checkAuth, userController.disconnectUser)
+router.patch('/disconnect', userController.disconnectUser)
 router.patch('/image', checkAuth, userController.updateProfileImg)
 router.patch('/', checkAuth, userController.updateUserInfo)
 router.patch('/password', checkAuth, userController.updateUserPassword)

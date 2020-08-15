@@ -26,6 +26,7 @@ export class CallRoomComponent implements OnInit {
     isCaller: boolean;
     callStatus: boolean;
     isCameraOpen: boolean;
+    isOtherUserCameraOpen: boolean;
     isMicroOpen: boolean;
     pauseResumeCameraStream: BehaviorSubject<boolean>;
     pauseResumeMicroStream: BehaviorSubject<boolean>;
@@ -55,6 +56,7 @@ export class CallRoomComponent implements OnInit {
     ngOnInit() {
         this.isVideoCall = this.router.snapshot.queryParamMap.get('video') == 'true';
         this.isCameraOpen = this.isVideoCall;
+        this.isOtherUserCameraOpen = this.isVideoCall;
         this.roomId = this.router.snapshot.paramMap.get('id');
         this.isCaller = this.router.snapshot.queryParamMap.get('iscaller') == 'true';
 
@@ -112,6 +114,7 @@ export class CallRoomComponent implements OnInit {
             })
         this.callRoomService.getConnectUser()
             .subscribe((response: any) => {
+                console.log(response)
                 this.connectedUser = response.user
                 this.callRoomService.getUserById(this.connectedUser._id == userIds[1] ? userIds[0] : userIds[1])
                     .subscribe((response: any) => {
@@ -123,6 +126,12 @@ export class CallRoomComponent implements OnInit {
                         }
                     })
 
+            })
+
+        this.callRoomService.onCameraStateChanged()
+            .subscribe((action: boolean) => {
+                console.log(action)
+                this.isOtherUserCameraOpen = action
             })
         this.createCall()
 
@@ -142,6 +151,7 @@ export class CallRoomComponent implements OnInit {
     onOpenAndCloseCamera(status: boolean) {
         this.isCameraOpen = status
         this.pauseResumeCameraStream.next(this.isCameraOpen)
+        this.callRoomService.userOpenCloseCamera(this.userCallDes._id, status)
     }
     onOpenAndCloseMicro(status: boolean) {
         this.isMicroOpen = status
@@ -153,7 +163,7 @@ export class CallRoomComponent implements OnInit {
     createCall() {
 
         this.myVideo.muted = true;
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
             .then(stream => {
                 if (!this.isVideoCall) stream.getVideoTracks().forEach(track => track.enabled = false)
 
@@ -167,7 +177,6 @@ export class CallRoomComponent implements OnInit {
                 this.pauseResumeMicroStream
                     .subscribe(action => {
                         if (action !== null) {
-                            console.log(action)
                             stream.getAudioTracks().forEach(track => track.enabled = action)
                         }
                     })

@@ -9,7 +9,7 @@ export class ConversationService {
 
     }
     setSesstion() {
-        this.token = sessionStorage.getItem('token')
+        this.token = localStorage.getItem('token')
     }
     sendMessage(conversationId: string, content: string, files: any) {
         const headers = new HttpHeaders().set('Authorization', this.token);

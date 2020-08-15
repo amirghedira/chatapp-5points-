@@ -1,28 +1,30 @@
-<div class="containerSelfVideo" [style.background-color]="isVideoCall ? 'rgb(28, 30, 33)' : 'transparent'">
+<div class="containerSelfVideo" [style.background-color]="isCameraOpen ? 'rgb(28, 30, 33)' : 'transparent'">
   <video id="userVideo" class="selfVideoPlayer" [style.display]="isCameraOpen ? 'inline' : 'none'" height="200px"
     width="200px">
     <source>
   </video>
 </div>
 <div class="containerUserVideo">
-  <video class="userVideoPlayer" id="otherUserVideo" [style.display]="isCameraOpen ? 'inline' : 'none'">
+  <video class="userVideoPlayer" id="otherUserVideo" [style.display]="isOtherUserCameraOpen ? 'inline' : 'none'">
     <source>
   </video>
 </div>
-<div class="main-div">
-  <div class="row">
-    <div class="col-12">
-      <div class="user-info-container">
-        <img [src]="userCallDes?.profileImg" class="user-image" />
+<div *ngIf="userCallDes" class="main-div">
+  <div class="row" style="height: 100%;">
+    <div class="col-12" style="height: 100%; padding-top: 200px;">
+      <div *ngIf="!isOtherUserCameraOpen" class="user-info-container">
+        <img [src]="userCallDes.profileImg" class="user-image" />
       </div>
-      <div style="margin-top: 30px;" class="user-info-container">
-        <p style="font-weight: 800;font-size: 18px;" [style.color]="isVideoCall? 'white': 'black'">
-          {{userCallDes?.surname}} {{userCallDes?.name}}.</p>
+      <div *ngIf="!isOtherUserCameraOpen">
+        <div style=" margin-top: 30px;" class="user-info-container">
+          <p style="font-weight: 800;font-size: 18px;" [style.color]="isCameraOpen? 'white': 'black'">
+            {{userCallDes?.surname}} {{userCallDes?.name}}.</p>
+        </div>
+        <div class="user-info-container">
+          <p style="color: #999999;">{{callState}}</p>
+        </div>
       </div>
-      <div class="user-info-container">
-        <p style="color: #999999;">{{callState}}</p>
-      </div>
-      <div class="main-buttons-container">
+      <div class="main-buttons-container" [style.margin-top]="isOtherUserCameraOpen ? '190px':'0'">
         <div *ngIf="callStatus" class="buttons-bar-container">
           <div class="button-control-container" [style.border-color]="!isCameraOpen? '#999999' : '#0084ff'"
             [style.background-color]="isCameraOpen? '#0084ff' : 'white' ">

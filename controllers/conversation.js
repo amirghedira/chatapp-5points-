@@ -208,6 +208,7 @@ exports.getConversationByUsers = async (req, res) => {
         let conversation = await Conversation.findOne({ users: { "$all": [req.user._id, req.params.userid] } }).populate('messages').populate('users').exec()
         if (conversation)
             conversation = filterConversationMessages(conversation, req.user._id)
+
         res.status(200).json({ conversation })
 
 

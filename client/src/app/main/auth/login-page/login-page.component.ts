@@ -15,7 +15,7 @@ export class LoginPageComponent implements OnInit {
     password: string;
     constructor(private authService: AuthService, private router: Router) { }
     ngOnInit() {
-        if (sessionStorage.getItem('token'))
+        if (localStorage.getItem('token'))
             this.router.navigate(['/chat'])
     }
     onConnect() {
@@ -23,7 +23,7 @@ export class LoginPageComponent implements OnInit {
             console.log(response)
             this.authService.setSesstion(response.body.token)
             this.authService.login(response.body.user)
-            this.router.navigate(['/chat']);
+            this.router.navigate(['chat/messenger']);
         }), (error) => {
             Swal.fire({
                 icon: 'error',

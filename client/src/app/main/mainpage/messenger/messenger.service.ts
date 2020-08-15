@@ -10,6 +10,9 @@ export class MessengerService {
     token: string;
     private closeCallWindow = new BehaviorSubject(null);
     constructor(private http: HttpClient, private socket: Socket) {
+        this.token = localStorage.getItem('token')
+        if (this.token) this.socket.emit('connectuser', this.token, false)
+
     }
     newUserAdded() {
         let observable = new Observable<{ newuser: {} }>(

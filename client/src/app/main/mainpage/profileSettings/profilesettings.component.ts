@@ -10,13 +10,13 @@ export class ProfileSettingsComponent implements OnInit {
 
     showModal: boolean;
     userProfile: any;
-    constructor(private MainPageService: MainPageService) {
+    constructor(private mainPageService: MainPageService) {
 
         this.showModal = false;
     }
 
     ngOnInit() {
-        this.MainPageService.getConnectUser()
+        this.mainPageService.getConnectUser()
             .subscribe((response: any) => {
                 this.userProfile = response.user;
             })
@@ -32,7 +32,7 @@ export class ProfileSettingsComponent implements OnInit {
                 this.userProfile.profileImg = e.target.result;
             };
             reader.readAsDataURL(file);
-            this.MainPageService.updateUserProfileImg(file)
+            this.mainPageService.updateUserProfileImg(file)
                 .subscribe((response: any) => {
                     this.userProfile.profileImg = response.imageUrl;
                 })

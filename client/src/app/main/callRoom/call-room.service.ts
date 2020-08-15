@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { Socket } from 'ngx-socket-io';
 
@@ -12,6 +12,9 @@ export class CallRoomService {
     userConnected = this.userCon.asObservable();
     private closeCallWindow = new BehaviorSubject(null);
     constructor(private http: HttpClient, private socket: Socket) {
+
+        this.socket.emit('connectuser', localStorage.getItem('token'), true)
+
     }
 
     startCall(roomId: string, userPeerId: string) {
@@ -36,7 +39,7 @@ export class CallRoomService {
         let observable = new Observable(
             (observer) => {
                 this.socket.on('call-ended', (data) => {
-                    console.log(data)
+                    console.log('hey call ended')
                     observer.next(data);
                 });
                 return () => this.socket.disconnect();
@@ -44,11 +47,26 @@ export class CallRoomService {
         );
         return observable
     }
+    onCameraStateChanged() {
+        let observable = new Observable(
+            (observer) => {
+                this.socket.on('onCameraStateChange', (data) => {
+                    observer.next(data);
+                });
+                return () => this.socket.disconnect();
+            }
+        );
+        return observable
+    }
+
+    userOpenCloseCamera(DestUserId, action) {
+        this.socket.emit('cameraOpenClose', DestUserId, action)
+    }
+
     onCallState() {
         let observable = new Observable(
             (observer) => {
                 this.socket.on('user-call-state', (data) => {
-                    console.log(data)
                     observer.next(data);
                 });
                 return () => this.socket.disconnect();
@@ -61,9 +79,7 @@ export class CallRoomService {
     }
     getConnectUser() {
 
-        const headers = new HttpHeaders().set('Authorization', this.token);
-
-        return this.http.get('http://localhost:5000/user/bytoken', { headers: headers })
+        return this.http.get('http://localhost:5000/user/bytoken')
     }
     endCall(userCaller, fromCaller) {
         this.socket.emit('end-call', userCaller, fromCaller)

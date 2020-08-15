@@ -27,7 +27,10 @@ server.listen(process.env.PORT || 5000, () => {
                         if (isCall)
                             ConnectedUsers[userindex].socketIdCall = socket.id;
                         else
-                            ConnectedUsers[userindex].socketIds.push(socket.id)
+                            if (ConnectedUsers[userindex].socketIds)
+                                ConnectedUsers[userindex].socketIds.push(socket.id)
+                            else
+                                ConnectedUsers[userindex].socketIds = [socket.id]
                     }
                 }
 
@@ -93,12 +96,20 @@ server.listen(process.env.PORT || 5000, () => {
             const userDestindex = ConnectedUsers.findIndex(connecteduser => {
                 return connecteduser.userid === callReceiverId
             })
+            const userCallerindex = ConnectedUsers.findIndex(connecteduser => {
+                return connecteduser.userid === callerUserId
+            })
+
 
             if (userDestindex >= 0) {
-                ConnectedUsers[userDestindex].socketIds.forEach(socketId => {
-                    socket.broadcast.to(socketId).emit('call-user', callerUserId, isVideoCall)
+                if (ConnectedUsers[userDestindex].socketIds)
+                    ConnectedUsers[userDestindex].socketIds.forEach(socketId => {
+                        socket.broadcast.to(socketId).emit('call-user', callerUserId, isVideoCall)
 
-                })
+                    })
+                else
+                    socket.broadcast.to(ConnectedUsers[userCallerindex].socketIdCall).emit('call-ended', callerUserId)
+
             }
 
             socket.emit('user-call-state', userDestindex >= 0)
@@ -117,6 +128,13 @@ server.listen(process.env.PORT || 5000, () => {
                 }
                 else
                     socket.broadcast.to(ConnectedUsers[userindex].socketIdCall).emit('call-ended', callerUser)
+        })
+        socket.on('cameraOpenClose', (DestUserId, action) => {
+            const userIndex = ConnectedUsers.findIndex(connectedUser => { return connectedUser.userid === DestUserId })
+            console.log(ConnectedUsers[userIndex].userid, DestUserId)
+            if (userIndex >= 0) {
+                socket.broadcast.to(ConnectedUsers[userIndex].socketIdCall).emit('onCameraStateChange', action)
+            }
         })
         socket.on('join-room', (roomId, userId) => {
             socket.join(roomId)

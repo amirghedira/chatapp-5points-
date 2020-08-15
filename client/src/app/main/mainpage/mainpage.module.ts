@@ -1,11 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { MainPageService } from './mainpage.service';
 import { ProfileSettingsComponent } from './profileSettings/profilesettings.component';
 import { CommonModule } from '@angular/common';
+
 const MainPageRoutes: Routes = [
 
     {
@@ -20,7 +19,7 @@ const MainPageRoutes: Routes = [
     },
     {
         path: '**',
-        redirectTo: 'login',
+        redirectTo: 'messenger',
     },
 ];
 
@@ -34,7 +33,6 @@ const MainPageRoutes: Routes = [
         CommonModule,
         RouterModule.forChild(MainPageRoutes),
         FormsModule,
-        NgbModule
     ],
     providers: [MainPageService],
 })

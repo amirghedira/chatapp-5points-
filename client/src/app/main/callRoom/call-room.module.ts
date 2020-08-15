@@ -2,8 +2,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { CallRoomComponent } from './call-room.component';
 import { CallRoomService } from './call-room.service';
 import { CommonModule } from '@angular/common';
@@ -11,12 +9,12 @@ import { CommonModule } from '@angular/common';
 const RoomRoutes: Routes = [
 
     {
-        path: 'room/:id',
+        path: ':id',
         component: CallRoomComponent
     },
     {
         path: '**',
-        redirectTo: '/'
+        redirectTo: '/chat/messenger'
     }
 ];
 
@@ -29,8 +27,7 @@ const RoomRoutes: Routes = [
 
         CommonModule,
         RouterModule.forChild(RoomRoutes),
-        FormsModule,
-        NgbModule
+        FormsModule
     ],
     providers: [CallRoomService],
 })
