@@ -20,9 +20,7 @@ export class LoginPageComponent implements OnInit {
     }
     onConnect() {
         this.authService.userLogin(this.username, this.password).subscribe(((response: any) => {
-            console.log(response)
             this.authService.setSesstion(response.body.token)
-            this.authService.login(response.body.user)
             this.router.navigate(['chat/messenger']);
         }), (error) => {
             Swal.fire({

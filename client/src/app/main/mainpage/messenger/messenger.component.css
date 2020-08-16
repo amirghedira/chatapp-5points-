@@ -319,6 +319,21 @@
   border-radius: 50%;
 }
 
+.backdrop-image-container {
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 30px;
+  width: 100%;
+  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
 .backdrop-container {
 
   position: fixed;
@@ -632,7 +647,7 @@
 .conversation-container {
   width: 100%;
   padding-top: 70px;
-  height: 71vh;
+  height: 68vh;
   scroll-behavior: auto;
   overflow-y: auto;
 }
@@ -744,10 +759,26 @@
   justify-content: flex-end;
   align-items: flex-start;
   border-radius: 18px;
-  background-position: 100% 100%;
+  background-position: 50% 50%;
   background-repeat: no-repeat;
   background-size: cover;
 
+}
+
+.modal-image-container {
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 90%;
+  --width: 900px;
+  background-color: white;
+  border-radius: 8px;
+  position: fixed;
+  top: 5vh;
+  left: calc(50vw - var(--width)/2);
+  padding: 20px 20px 0 20px;
+  z-index: 99999;
+  width: var(--width);
 }
 
 .convo-box {

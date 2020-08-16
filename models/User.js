@@ -11,7 +11,9 @@ const userSchema = new mongoose.Schema({
     connection: {
         lastVisit: { type: String },
         status: { type: Boolean, required: true, default: false }
-    }
+    },
+    address: { type: String },
+
 
 })
 

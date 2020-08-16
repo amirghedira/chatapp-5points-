@@ -95,6 +95,7 @@
 
 .modal-input {
   padding: 10px 20px 10px 20px;
+  margin-top: 10px;
   width: 100%;
   outline: none;
 }
@@ -102,6 +103,7 @@
 .modal-input:focus {
   border: 2px solid rgb(0, 153, 255);
 }
+
 
 .modal-content-text {
   margin-top: 10px;

@@ -7,9 +7,6 @@ import { Socket } from 'ngx-socket-io';
 @Injectable()
 export class CallRoomService {
 
-    token: string;
-    private userCon = new BehaviorSubject(null);
-    userConnected = this.userCon.asObservable();
     private closeCallWindow = new BehaviorSubject(null);
     constructor(private http: HttpClient, private socket: Socket) {
 

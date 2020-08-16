@@ -1,17 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { Socket } from 'ngx-socket-io';
+import { HttpClient } from '@angular/common/http';
+
 
 
 @Injectable()
 export class MainPageService {
 
-    token: string;
-    private userCon = new BehaviorSubject(null);
-    userConnected = this.userCon.asObservable();
-    private closeCallWindow = new BehaviorSubject(null);
-    constructor(private http: HttpClient, private socket: Socket) {
+
+    constructor(private http: HttpClient) {
     }
 
     getConnectUser() {
@@ -25,8 +21,13 @@ export class MainPageService {
         return this.http.patch(`http://localhost:5000/user/image/`, fd)
     }
     disconnectUser(userId) {
-        this.token = null;
         localStorage.clear()
         return this.http.patch('http://localhost:5000/user/disconnect', { userId })
+    }
+    updateUserPassword(oldPassword, newPassword) {
+        return this.http.patch(`http://localhost:5000/user/password/`, { oldPassword, newPassword })
+    }
+    updateUserInfo(user) {
+        return this.http.patch(`http://localhost:5000/user`, { user })
     }
 }

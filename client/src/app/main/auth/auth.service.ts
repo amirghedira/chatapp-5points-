@@ -8,9 +8,6 @@ import { Socket } from 'ngx-socket-io';
 export class AuthService {
 
     token: string;
-    private userCon = new BehaviorSubject(null);
-    userConnected = this.userCon.asObservable();
-    private closeCallWindow = new BehaviorSubject(null);
     constructor(private http: HttpClient, private socket: Socket) {
         this.token = localStorage.getItem('token')
 
@@ -33,9 +30,6 @@ export class AuthService {
         return this.http.post('http://localhost:5000/user/login', { username, password }, {
             observe: 'response',
         })
-    }
-    login(user: any) {
-        this.userCon.next(user);
     }
 
     userRegistration(data) {

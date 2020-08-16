@@ -16,15 +16,7 @@ export class UserNavbarComponent implements OnInit {
     constructor(private mainPageService: MainPageService, private router: Router) {
 
         this.loading = true;
-        this.status = false;
-        this.mainPageService.userConnected.subscribe((user) => {
 
-            if (user) {
-                this.status = true
-                this.currentUser = user
-            }
-
-        });
     }
     ngOnInit() {
         this.mainPageService.getConnectUser().subscribe((response: any) => {

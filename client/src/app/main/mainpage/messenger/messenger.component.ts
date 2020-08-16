@@ -53,6 +53,8 @@ export class MessengerComponent implements OnInit, OnDestroy {
     openPseudoModal: boolean;
     openColorsModal: boolean;
     openMicroPopUp: boolean;
+    showImage: boolean;
+    selectedImage: string;
     audioDuration: number;
     openMessageMenuControls: any;
     openEmojiModal: boolean;
@@ -91,6 +93,8 @@ export class MessengerComponent implements OnInit, OnDestroy {
         this.openBlockMsgModal = false;
         this.openIgnoreMessages = false;
         this.openEditPseudoModal = false;
+        this.showImage = false;
+        this.selectedImage = null;
         this.openMicroPopUp = false;
         this.selectedUserPseudoIndex = null;
         this.openPseudoModal = false;
@@ -327,10 +331,16 @@ export class MessengerComponent implements OnInit, OnDestroy {
 
 
     }
+    setSelectedImage(imageUrl) {
+        this.selectedImage = imageUrl;
+        this.showImage = true
+    }
+    onShowImage(status: boolean) {
+        this.showImage = status
+    }
     handlefileInput(event) {
 
         this.filesUpload = event;
-        console.log(this.filesUpload)
         for (let i = 0; i < event.length; i++) {
             try {
                 var reader = new FileReader();
@@ -340,8 +350,13 @@ export class MessengerComponent implements OnInit, OnDestroy {
                     else if (event.item(i).type.includes('video')) {
                         this.videosToSend.push(event.item(i))
                     }
+                    setTimeout(() => {
+                        var container = document.getElementById('conversation-container')
+                        container.scrollTop = container.scrollHeight;
+                    }, 1)
                 };
                 reader.readAsDataURL(this.filesUpload[i]);
+
             } catch (err) {
                 console.log(err)
             }

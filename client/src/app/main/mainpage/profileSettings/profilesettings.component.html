@@ -1,20 +1,134 @@
 <div *ngIf="userProfile">
-  <div *ngIf="showModal">
-    <div class="backdrop-container" (click)="onShowModal(false)">
+  <div *ngIf="showUsernameModal">
+    <div class="backdrop-container" (click)="onShowUsernameModal(false)">
     </div>
     <div class="modal-container">
       <div class="modal-title">
         <h4>
-          modalTitle
+          Change username
         </h4>
       </div>
       <div class="modal-content-text">
-        <input class="modal-input" placeholder="Amir Ghedira" />
+        <input class="modal-input" [placeholder]="userProfile.username" [(ngModel)]="editedUsername" />
       </div>
       <div class="modal-footer">
         <div>
-          <button class="button-success" (click)="onShowModal(false)">Annuler</button>
-          <button class="button-danger" (click)="saveHandler()">Enregister</button>
+          <button class="button-success" (click)="onShowUsernameModal(false)">Annuler</button>
+          <button class="button-danger" (click)="saveUsername()">Enregister</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="showNameModal">
+    <div class="backdrop-container" (click)="onShowNameModal(false)">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4>
+          Change name
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <input class="modal-input" [placeholder]="userProfile.name" [(ngModel)]="editedName" />
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onShowNameModal(false)">Annuler</button>
+          <button class="button-danger" (click)="saveName()">Enregister</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="showSurnameModal">
+    <div class="backdrop-container" (click)="onShowSurnameModal(false)">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4>
+          Change surname
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <input class="modal-input" [placeholder]="userProfile.surname" [(ngModel)]="editedSurname" />
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onShowSurnameModal(false)">Annuler</button>
+          <button class="button-danger" (click)="saveSurname()">Enregister</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="showPhoneModal">
+    <div class="backdrop-container" (click)="onShowPhoneModal(false)">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4>
+          Change phone number
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <input class="modal-input" [placeholder]="userProfile.Phone" [(ngModel)]="editedPhone" />
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onShowPhoneModal(false)">Annuler</button>
+          <button class="button-danger" (click)="savePhone()">Enregister</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="showAddressModal">
+    <div class="backdrop-container" (click)="onShowAddressModal(false)">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4>
+          Change address
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <input class="modal-input" [placeholder]="userProfile.address" [(ngModel)]="editedAddress" />
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onShowAddressModal(false)">Annuler</button>
+          <button class="button-danger" (click)="saveAddress()">Enregister</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="showPasswordModal">
+    <div class="backdrop-container" (click)="onShowPasswordModal(false)">
+    </div>
+    <div class="modal-container">
+      <div class="modal-title">
+        <h4>
+          Change password
+        </h4>
+      </div>
+      <div class="modal-content-text">
+        <div>
+
+          <input class="modal-input" type="password" placeholder="old Password" [(ngModel)]="editedOldPassword"
+            (focus)="resetErrorMsg()" />
+          <input class="modal-input" type="password" placeholder="new password" [(ngModel)]="editedNewPassword"
+            (focus)="resetErrorMsg()" />
+          <input class="modal-input" type="password" placeholder="re-enter new password" (focus)="resetErrorMsg()"
+            [(ngModel)]="editedReNewPassword" />
+          <div style="display: flex;padding-top: 10px;justify-content: center;align-items: center;">
+            <h5 style="font-size: 14px;font-weight: 400;color:#f03d25">{{editPasswordError}}</h5>
+          </div>
+        </div>
+
+
+
+      </div>
+      <div class="modal-footer">
+        <div>
+          <button class="button-success" (click)="onShowPasswordModal(false)">Annuler</button>
+          <button class="button-danger" (click)="savePassword()">Enregister</button>
         </div>
       </div>
     </div>
@@ -44,41 +158,41 @@
         <div style="margin-top: 20px;">
           <div class="field-container">
             <h4 class="field-title">
-              Username: <span class="field-content">ezez</span>
-              <i class="far fa-edit edit-icon"></i>
+              Username: <span class="field-content">{{userProfile.username}}</span>
+              <i class="far fa-edit edit-icon" (click)="onShowUsernameModal(true)"></i>
             </h4>
 
           </div>
           <div class="field-container">
             <h4 class="field-title">
-              name: <span class="field-content">ezez</span>
-              <i class="far fa-edit edit-icon"></i>
+              name: <span class="field-content">{{userProfile.name}}</span>
+              <i class="far fa-edit edit-icon" (click)="onShowNameModal(true)"></i>
             </h4>
 
           </div>
           <div class="field-container">
             <h4 class="field-title">
-              Surname: <span class="field-content">ezez</span>
-              <i class="far fa-edit edit-icon"></i>
+              Surname: <span class="field-content">{{userProfile.surname}}</span>
+              <i class="far fa-edit edit-icon" (click)="onShowSurnameModal(true)"></i>
             </h4>
           </div>
           <div class="field-container">
             <h4 class="field-title">
               Password: <span class="field-content">*********</span>
-              <i class="far fa-edit edit-icon"></i>
+              <i class="far fa-edit edit-icon" (click)="onShowPasswordModal(true)"></i>
             </h4>
           </div>
           <div class="field-container">
             <h4 class="field-title">
-              Phone: <span class="field-content">ezez</span>
-              <i class="far fa-edit edit-icon"></i>
+              Phone: <span class="field-content">{{userProfile.tel}}</span>
+              <i class="far fa-edit edit-icon" (click)="onShowPhoneModal(true)"></i>
             </h4>
 
           </div>
           <div class="field-container">
             <h4 class="field-title">
-              Address: <span class="field-content">ezez</span>
-              <i class="far fa-edit edit-icon"></i>
+              Address: <span class="field-content">{{userProfile.address}}</span>
+              <i class="far fa-edit edit-icon" (click)="onShowAddressModal(true)"></i>
             </h4>
 
           </div>
