@@ -15,10 +15,37 @@ filterConversationMessages = (conversation, userid) => {
     }
     return conversation;
 }
+exports.logCall = async (req, res) => {
+    const conversation = await Conversation.findOne({ _id: req.params.id }).populate('users').populate('messages').exec()
+    const { isAnsweredCall, isVideoCall } = req.body
+    let audioLogger = null;
+    if (isAnsweredCall) {
+        if (isVideoCall) {
+            audioLogger = 1
+        } else {
+            audioLogger = 0
+        }
+    } else {
+        audioLogger = -1
+    }
+    const message = new Message({
+        conversation: conversation._id,
+        sender: req.user._id,
+        date: new Date().toISOString(),
+        audioLogger: audioLogger,
+        content: ''
+    })
+    const createdMessage = await message.save()
+    conversation.messages.push(createdMessage)
+    await conversation.save()
+    socket.emit('send-message', { userid: conversation.users[0]._id, conversation: filterConversationMessages(conversation, conversation.users[0]._id) })
+    socket.emit('send-message', { userid: conversation.users[1]._id, conversation: filterConversationMessages(conversation, conversation.users[1]._id) })
 
+    res.status(200).json({ message: 'call logged successfully' })
+
+}
 exports.sendVocalMessage = async (req, res) => {
 
-    console.log(req.files)
     const conversation = await Conversation.findOne({ _id: req.params.id })
     cloudinary.uploader.upload_large(req.files.audio.tempFilePath, { resource_type: 'video' }, async (err, result) => {
         const message = new Message({

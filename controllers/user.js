@@ -7,29 +7,45 @@ const Conversation = require('../models/Conversation')
 const Message = require('../models/Message')
 const cloudinary = require('../middleware/cloudinary')
 
+exports.uploadImage = async (req, res, next) => {
+    if (req.files) {
+        cloudinary.uploader.upload_large(req.files.profileImage.tempFilePath, { resource_type: 'image' }, async (err, result) => {
+            req.body.secure_url = result.secure_url;
+            return next()
+        })
+    } else {
+
+        return next()
+    }
+}
+
 exports.registerUser = async (req, res) => {
 
     const userdata = req.body
     try {
-        const hashedpw = await bcrypt.hash(userdata.password, 11)
-        const newuser = new User({
-            name: userdata.name,
-            surname: userdata.surname,
-            username: userdata.username,
-            password: hashedpw,
-            joinDate: new Date().toISOString(),
-            address: req.body.address,
-            tel: req.body.phone
-        })
-        await newuser.save()
-        res.status(201).json({ message: 'user successfully created' })
-
+        const user = await User.findOne({ username: userdata.username }).exec()
+        if (user)
+            res.status(409).json({ message: 'username already taken' })
+        else {
+            const hashedpw = await bcrypt.hash(userdata.password, 11)
+            const newuser = new User({
+                name: userdata.name,
+                surname: userdata.surname,
+                username: userdata.username,
+                password: hashedpw,
+                joinDate: new Date().toISOString(),
+                address: userdata.address,
+                profileImg: userdata.secure_url,
+                tel: userdata.phone
+            })
+            await newuser.save()
+            res.status(201).json({ message: 'user successfully created' })
+        }
     } catch (error) {
-        res.status(500).json({ error: error.meesage })
+        res.status(500).json({ error: error.message })
 
     }
 }
-
 exports.getUser = async (req, res) => {
 
     try {
@@ -163,7 +179,17 @@ exports.disconnectUser = async (req, res) => {
 }
 exports.searchUsers = async (req, res) => {
     try {
-        const users = await User.find({ $or: [{ username: { $regex: req.query.term } }, { name: { $regex: req.query.term } }, { surname: { $regex: req.query.term } }], $and: [{ _id: { $ne: req.user._id } }] }).exec()
+        let terms = req.query.term;
+        let users = []
+        if (terms.includes(' ')) {
+
+            terms = req.query.term.split(' ')
+            users = await User.find({ $or: [{ username: { $regex: terms[0] } }, { username: { $regex: terms[1] } }, { name: { $regex: terms[0] } }, { name: { $regex: terms[1] } }, { surname: { $regex: terms[0] } }, { surname: { $regex: terms[1] } }], $and: [{ _id: { $ne: req.user._id } }] }).exec()
+
+        } else {
+            users = await User.find({ $or: [{ username: { $regex: terms } }, { name: { $regex: terms } }, { surname: { $regex: terms } }], $and: [{ _id: { $ne: req.user._id } }] }).exec()
+
+        }
 
         res.status(200).json({ users: users })
 

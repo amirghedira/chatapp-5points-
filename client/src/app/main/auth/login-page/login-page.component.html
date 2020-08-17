@@ -15,10 +15,10 @@
 
         <div class="wrap-input100 validate-input m-b-12">
           <span class=" btn-show-pass">
-            <i class="fa fa-eye"></i>
+            <i [ngClass]="!showPassword ? 'fa fa-eye' :'fa fa-eye-slash'" (click)="showHidePassword()"></i>
           </span>
-          <input class="input100" type="password" name="password" id="password" placeholder="Password"
-            [(ngModel)]="password">
+          <input class="input100" [type]="showPassword ? 'text' : 'password'" name="password" id="password"
+            placeholder="Password" [(ngModel)]="password">
           <span class="focus-input100"></span>
         </div>
 

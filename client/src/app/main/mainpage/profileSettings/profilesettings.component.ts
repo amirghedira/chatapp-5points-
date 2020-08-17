@@ -1,5 +1,7 @@
-import { Component, OnInit, ElementRef, ViewChild } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { MainPageService } from '../mainpage.service';
+import * as moment from 'moment'
+moment.locale('fr')
 
 @Component({
     styleUrls: ['profilesettings.component.css'],
@@ -118,6 +120,18 @@ export class ProfileSettingsComponent implements OnInit {
             this.editPasswordError = "Passwords didn\'t match"
         }
 
+    }
+    transformDateJoin(date) {
+        const _Date = new Date(date);
+        const _nowDate = new Date()
+        const nowYear = _nowDate.getFullYear();
+        const year = + _Date.getFullYear();
+
+        if (year == nowYear) {
+            return moment(new Date(date)).format('DD MMMM')
+
+        }
+        return moment(new Date(date)).format('DD MMMM YYYY')
     }
     savePhone() {
         this.userProfile.tel = this.editedPhone

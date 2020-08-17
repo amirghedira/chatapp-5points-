@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import { EmojiConvertor } from 'emoji-js'
 import { Howl } from 'howler';
 import { MessengerService } from './messenger.service';
+import { MainPageService } from '../mainpage.service';
 declare var MediaRecorder: any;
 
 moment.locale('fr')
@@ -45,6 +46,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
     destinationUser: number;
     imagesToSend: any;
     filesUpload: any;
+    nbNotif: number;
     //modals
     openBlockMsgModal: boolean;
     openDeleteConverModal: boolean;
@@ -86,7 +88,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
     set = 'twitter';
 
 
-    constructor(private messengerService: MessengerService, private router: Router) {
+    constructor(private messengerService: MessengerService) {
 
 
         this.search = this.search.bind(this)
@@ -114,6 +116,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
         this.callReceivedModal = false;
         this.openMessageMenuControls = []
         this.loadingMessages = true;
+        this.nbNotif = 0;
         this.recordDuration = '00';
         this.conversationAudios = []
         this.emoji = new EmojiConvertor();
@@ -126,6 +129,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
             src: ['/assets/audio/call-ring.mp3'],
             loop: true
         });
+
         this.messengerService.newUserAdded().subscribe((newuser) => {
             this.users = [...this.users, newuser]
 
@@ -212,9 +216,14 @@ export class MessengerComponent implements OnInit, OnDestroy {
 
                 this.messengerService.setReceivedMessage(newConversation.messages[newConversation.messages.length - 1]._id,
                     newConversation.users[0]._id == this.connectedUser._id ? newConversation.users[1]._id : newConversation.users[0]._id)
-                    .subscribe(res => {
-                        console.log(res)
-                    })
+                    .subscribe()
+                this.nbNotif = 0;
+                this.userConversations.forEach(conversation => {
+                    const lastMessage = conversation.messages[conversation.messages.length - 1];
+                    if (lastMessage.sender !== this.connectedUser._id && lastMessage.seen.state)
+                        this.nbNotif++;
+                });
+                this.refreshNotificationHeader(this.nbNotif)
 
             });
 
@@ -405,6 +414,12 @@ export class MessengerComponent implements OnInit, OnDestroy {
                     const messagedate2 = c2.messages[c2.messages.length - 1].date;
                     return new Date(messagedate2).getTime() - new Date(messagedate1).getTime();
                 });
+                response.conversations.forEach(conversation => {
+                    const lastMessage = conversation.messages[conversation.messages.length - 1];
+                    if (lastMessage.sender != result.user._id && !lastMessage.seen.state) {
+                        this.refreshNotificationHeader(this.nbNotif + 1)
+                    }
+                })
                 this.selectedConversation = false;
                 this.loading = false;
             })
@@ -470,10 +485,9 @@ export class MessengerComponent implements OnInit, OnDestroy {
             available: true, date: new Date().toISOString()
         }
         if (this.currentConversation._id) {
-            const currentMessage = this.currentMessage
             this.currentMessage = ''
             this.currentConversation.messages.push(loadingMessage)
-            this.messengerService.sendMessage(this.currentConversation._id, currentMessage, this.filesUpload)
+            this.messengerService.sendMessage(this.currentConversation._id, loadingMessage.content, this.filesUpload)
                 .subscribe((response: any) => {
                     const conversationsIds = this.userConversations.map(conversation => conversation._id)
 
@@ -486,11 +500,11 @@ export class MessengerComponent implements OnInit, OnDestroy {
         }
         else {
             this.currentConversation.messages.push(loadingMessage)
+            this.currentMessage = ''
             this.messengerService.createConversation(this.currentConversation.users[this.destinationUser]._id)
                 .subscribe((response: any) => {
 
-                    this.messengerService.sendMessage(response.conversation._id, this.currentMessage, this.filesUpload).subscribe((messageResponse: any) => {
-                        this.currentMessage = '';
+                    this.messengerService.sendMessage(response.conversation._id, loadingMessage.content, this.filesUpload).subscribe((messageResponse: any) => {
                         response.conversation.messages.push(messageResponse.newMessage)
                         this.userConversations.unshift(response.conversation)
                         this.currentConversation = response.conversation
@@ -514,6 +528,27 @@ export class MessengerComponent implements OnInit, OnDestroy {
     getLoadingImageStatus(messageId) {
         return this.loadingImages && this.currentConversation.messages[this.currentConversation.messages.length - 1]._id == messageId
     }
+    getMessageCallLog(message) {
+        if (message.sender == this.connectedUser._id) {
+
+            if (message.audioLogger === -1)
+                return `${this.currentConversation.users[this.destinationUser].name} a manque votre appel`
+            else if (message.audioLogger === 0) {
+                return `Vous avez appele ${this.currentConversation.users[this.destinationUser].name}`
+            }
+            return `Discussion vidéo terminée`
+
+        }
+        else {
+
+            if (message.audioLogger === -1)
+                return `Vous avez manque un de appel ${this.currentConversation.users[this.destinationUser].name}`
+            else if (message.audioLogger === 0) {
+                return `Vous avez recu un appel de ${this.currentConversation.users[this.destinationUser].name}`
+            }
+            return `Discussion vidéo terminée`
+        }
+    }
     getLastConversationContent(conversation) {
         const lastMessage = conversation.messages[conversation.messages.length - 1];
         if (!lastMessage.available) {
@@ -524,6 +559,30 @@ export class MessengerComponent implements OnInit, OnDestroy {
                 const userIndex = conversation.users.findIndex(user => user._id == lastMessage.sender)
                 return `${conversation.users[userIndex].name} avez supprimé un message`
 
+            }
+        }
+        if (lastMessage.audioLogger !== null) {
+            if (lastMessage.sender == this.connectedUser._id) {
+                const userIndex = conversation.users.findIndex(user => user._id != lastMessage.sender)
+
+                if (lastMessage.audioLogger === -1)
+                    return `${conversation.users[userIndex].name} a manque votre appel`
+                else if (lastMessage.audioLogger === 0) {
+                    return `Vous avez appele ${conversation.users[userIndex].name}`
+                }
+                return `Discussion vidéo terminée`
+
+            }
+            else {
+
+                const userIndex = conversation.users.findIndex(user => user._id == lastMessage.sender)
+
+                if (lastMessage.audioLogger === -1)
+                    return `Vous avez manque un de appel ${conversation.users[userIndex].name}`
+                else if (lastMessage.audioLogger === 0) {
+                    return `Vous avez recu un appel de ${conversation.users[userIndex].name}`
+                }
+                return `Discussion vidéo terminée`
             }
         }
         if (lastMessage.content.length > 0)
@@ -584,17 +643,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
         this.destinationUser = this.currentConversation.users.findIndex(user => user._id != this.connectedUser._id)
         this.selectedConversation = true;
         this.selectedProfileInfo = false;
-        this.currentConversation.messages.forEach(message => {
-            if (message.audio) {
-                const messageAudio = {
-                    messageId: message._id, audio: new Howl({
-                        src: [message.audio]
-                    })
-                }
-                this.conversationAudios.push(messageAudio)
-
-            }
-        })
+        this.setVocalMessages()
         this.currentConversation.messages.forEach(message => {
             this.openMessageMenuControls[message._id.toString()] = false;
         })
@@ -723,7 +772,6 @@ export class MessengerComponent implements OnInit, OnDestroy {
     setFocusConversation(conversationid, status) {
         this.focusConversation = { id: conversationid, status: status }
     }
-
     onOpenSearchedConversation(user) {
         this.messengerService.getConversationByUsers(user._id)
             .subscribe((response: any) => {
@@ -741,6 +789,11 @@ export class MessengerComponent implements OnInit, OnDestroy {
                     this.selectedConversation = true;
                     this.searchTerms = '';
                 }
+                this.setVocalMessages()
+                setTimeout(() => {
+                    var container = document.getElementById('conversation-container')
+                    container.scrollTop = container.scrollHeight;
+                }, 1)
             })
     }
     isLastMessage(messageId: string) {
@@ -756,6 +809,8 @@ export class MessengerComponent implements OnInit, OnDestroy {
     messageFieldFocused() {
         if (this.currentConversation.messages.length > 0) {
             const lastMessage = this.currentConversation.messages[this.currentConversation.messages.length - 1]
+            this.refreshNotificationHeader(this.nbNotif - 1)
+
             if (lastMessage.sender != this.connectedUser._id && !lastMessage.seen.state)
                 this.messengerService.markConversationasRead(this.currentConversation.users[this.destinationUser]._id, this.currentConversation._id)
                     .subscribe(() => {
@@ -809,14 +864,25 @@ export class MessengerComponent implements OnInit, OnDestroy {
             })
     }
 
-    archiveConversation() {
+    archiveConversation(conversationId) {
 
-        this.messengerService.archiveConversation(this.currentConversation._id)
+        this.messengerService.archiveConversation(conversationId)
             .subscribe(res => {
-                const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
+                const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == conversationId)
                 this.userConversations.splice(conversationIndex, 1)
                 this.selectedConversation = false;
                 this.selectedProfileInfo = false
+            })
+    }
+    blockUserConversation(conversationId) {
+        const convIndex = this.userConversations.findIndex(conversation => conversation._id == conversationId)
+        const UserIndex = this.userConversations[convIndex].users.findIndex(user => user._id != this.connectedUser._id)
+        this.messengerService.blockUserConversation(this.userConversations[convIndex], this.currentConversation.users[UserIndex]._id)
+            .subscribe((response: any) => {
+                if (this.currentConversation._id == this.userConversations[convIndex]._id)
+                    this.currentConversation.blocked = response.blocked
+
+                this.userConversations[convIndex].blocked = response.blocked
             })
     }
     blockUser() {
@@ -834,11 +900,11 @@ export class MessengerComponent implements OnInit, OnDestroy {
                 this.currentConversation.blocked = response.blocked
             })
     }
-    deleteConversation() {
-        this.messengerService.deleteConversation(this.currentConversation._id)
+    deleteConversation(conversationId) {
+        this.messengerService.deleteConversation(conversationId)
             .subscribe(() => {
-                const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
-                this.userConversations[conversationIndex].messages = []
+                const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == conversationId)
+                this.userConversations.splice(conversationIndex, 1)
                 this.selectedConversation = false;
                 this.selectedProfileInfo = false;
                 this.openDeleteConverModal = false;
@@ -921,6 +987,27 @@ export class MessengerComponent implements OnInit, OnDestroy {
         this.openColorsModal = status
 
     };
+    refreshNotificationHeader(nb: number) {
+        this.nbNotif = nb
+        if (this.nbNotif > 0)
+            document.title = `(${this.nbNotif}) Messenger`
+        else
+            document.title = 'Messenger'
+    }
+
+    setVocalMessages() {
+        this.currentConversation.messages.forEach(message => {
+            if (message.audio) {
+                const messageAudio = {
+                    messageId: message._id, audio: new Howl({
+                        src: [message.audio]
+                    })
+                }
+                this.conversationAudios.push(messageAudio)
+
+            }
+        })
+    }
 
     ngOnDestroy() {
         this.users = []

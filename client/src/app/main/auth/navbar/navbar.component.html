@@ -1,12 +1,12 @@
 <nav class="navbar">
   <div style="display: flex;justify-content: space-between;align-items: center;width: 100%;">
     <div style="width: 100%;">
-      <h4 [routerLink]="['/chat']" style="cursor: pointer;outline: none;">Messanger</h4>
+      <h4 [routerLink]="['/auth/login']" style="cursor: pointer;outline: none;">Messanger</h4>
     </div>
     <div style="width: 100%;display: flex;justify-content: flex-end;align-items: center;">
-      <button class="login-button" [routerLink]="['/login']">Login</button>
+      <button class="login-button" [routerLink]="['/auth/login']">Login</button>
 
-      <button class="singup-button" [routerLink]="['/signup']">Sign Up</button>
+      <button class="singup-button" [routerLink]="['/auth/signup']">Sign Up</button>
     </div>
   </div>
 </nav>

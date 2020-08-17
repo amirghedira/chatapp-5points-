@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { AutosizeModule } from 'ngx-autosize';
 import { PickerModule, EmojiFrequentlyService, EmojiSearch } from '@ctrl/ngx-emoji-mart';
 import { EmojiService } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { MainPageService } from '../mainpage.service';
 
 const MessengerRoutes: Routes = [
 

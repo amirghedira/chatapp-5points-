@@ -13,7 +13,10 @@ export class LoginPageComponent implements OnInit {
 
     username: string;
     password: string;
-    constructor(private authService: AuthService, private router: Router) { }
+    showPassword: boolean;
+    constructor(private authService: AuthService, private router: Router) {
+        this.showPassword = false
+    }
     ngOnInit() {
         if (localStorage.getItem('token'))
             this.router.navigate(['/chat'])
@@ -30,5 +33,8 @@ export class LoginPageComponent implements OnInit {
             })
         })
 
+    }
+    showHidePassword() {
+        this.showPassword = !this.showPassword
     }
 }

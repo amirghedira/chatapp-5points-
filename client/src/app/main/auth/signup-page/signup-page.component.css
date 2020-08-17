@@ -227,7 +227,7 @@ iframe {
 
 .login100-form-title {
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 30px;
+  font-size: 20px;
   color: #555555;
   line-height: 1.2;
   text-transform: uppercase;
@@ -250,6 +250,39 @@ iframe {
   border-radius: 2px;
 }
 
+.image-container {
+  box-shadow: 0 0px 10px rgba(0, 0, 0, .3);
+  border-radius: 50%;
+  position: relative;
+
+}
+
+.edit-image-icon {
+
+  font-size: 18px;
+  color: white;
+
+}
+
+.edit-image-container {
+  position: absolute;
+  top: 75px;
+  display: flex;
+  visibility: hidden;
+  justify-content: center;
+  align-items: center;
+  border-bottom-left-radius: 100px;
+  border-bottom-right-radius: 100px;
+  left: 0;
+  width: 150px;
+  height: 75px;
+  background-color: rgba(0, 0, 0, .4);
+}
+
+.image-container:hover .edit-image-container {
+  visibility: visible;
+
+}
 
 /*---------------------------------------------*/
 .input100 {

@@ -29,6 +29,14 @@ export class CallRoomService {
         );
         return observable;
     }
+    getConversationByUsers(userid: string) {
+
+        return this.http.get('http://localhost:5000/conversation/byusers/' + userid)
+    }
+    logCall(conversationId, isAnsweredCall, isVideoCall) {
+        return this.http.post('http://localhost:5000/conversation/call/' + conversationId, { isAnsweredCall, isVideoCall })
+
+    }
     callUser(callerUserId, receiverUserId, isVideoCall) {
         this.socket.emit('call-user', callerUserId, receiverUserId, isVideoCall)
     }

@@ -6,6 +6,7 @@ const cloudinary = require('../middleware/cloudinary')
 
 router.post('/', checkAuth, conversationController.sendMessage)
 router.post('/vocal/:id', checkAuth, conversationController.sendVocalMessage)
+router.post('/call/:id', checkAuth, conversationController.logCall)
 router.post('/conversation', checkAuth, conversationController.createConversation)
 router.patch('/archive/:id', checkAuth, conversationController.archiveConversation)
 router.patch('/emoji/:id', checkAuth, conversationController.updateConversationEmoji)

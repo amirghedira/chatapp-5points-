@@ -117,7 +117,8 @@
       <div class="modal-footer">
         <div>
           <button class="button-success" (click)="onOpenDeleteConver(false)">Annuler</button>
-          <button class="button-danger" (click)="deleteConversation()" style="font-weight: 500;">Supprimer</button>
+          <button class="button-danger" (click)="deleteConversation(currentConversation._id)"
+            style="font-weight: 500;">Supprimer</button>
         </div>
 
       </div>
@@ -353,9 +354,12 @@
                             <i class=" fas fa-ellipsis-h" id="dropdownMenuButton" data-toggle="dropdown"></i>
 
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                              <a class="dropdown-item" href="#">Action</a>
-                              <a class="dropdown-item" href="#">Another action</a>
-                              <a class="dropdown-item" href="#">Something else here</a>
+                              <button class="dropdown-item"
+                                (click)="archiveConversation(conversation._id)">Archiver</button>
+                              <button class="dropdown-item"
+                                (click)="deleteConversation(conversation._id)">Supprimer</button>
+                              <button class="dropdown-item" (click)="blockUserConversation(conversation._id)">Bloqué les
+                                messages</button>
                             </div>
                           </div>
                         </div>
@@ -432,12 +436,12 @@
                 <div class="user-message-details" style="align-items: center;justify-content: flex-end">
 
                   <div style="margin-right: 20px;">
-                    <i class="fas fa-phone-alt" style="font-size: 25px;" [style.color]="getConversationColor()"
-                      (click)="callUser(false)"></i>
+                    <i class="fas fa-phone-alt" style="font-size: 25px;cursor: pointer;"
+                      [style.color]="getConversationColor()" (click)="callUser(false)"></i>
                   </div>
                   <div style="display: flex;justify-content: center;align-items: center;margin-right: 10px;">
-                    <i class="fas fa-video" style="font-size: 25px;" [style.color]="getConversationColor()"
-                      (click)="callUser(true)">
+                    <i class="fas fa-video" style="font-size: 25px;cursor: pointer;"
+                      [style.color]="getConversationColor()" (click)="callUser(true)">
                     </i>
                     <span *ngIf="currentConversation.users[destinationUser].connection.status" class="online-status"
                       style="margin-left: 5px;"></span>
@@ -509,7 +513,7 @@
                   </h4>
 
                 </div>
-                <div class="field-container" (click)="archiveConversation()">
+                <div class="field-container" (click)="archiveConversation(currentConversation._id)">
                   <h4 class="field-title">
                     Archiver la conversation
                   </h4>
@@ -577,14 +581,14 @@
 
                   <div style="margin-right: 20px;">
 
-                    <i class="fas fa-phone-alt" style="font-size: 25px;" [style.color]="getConversationColor()"
-                      (click)="callUser(false)"></i>
+                    <i class="fas fa-phone-alt" style="font-size: 25px;cursor: pointer;"
+                      [style.color]="getConversationColor()" (click)="callUser(false)"></i>
                   </div>
 
                   <div style="display: flex;justify-content: center;align-items: center;margin-right: 10px;">
 
-                    <i class="fas fa-video" style="font-size: 25px;" [style.color]="getConversationColor()"
-                      (click)="callUser(true)">
+                    <i class="fas fa-video" style="font-size: 25px;cursor: pointer;"
+                      [style.color]="getConversationColor()" (click)="callUser(true)">
                     </i>
                     <span *ngIf="currentConversation.users[destinationUser].connection.status" class="online-status"
                       style="margin-left: 5px;"></span>
@@ -682,10 +686,30 @@
                                   </div>
                                 </div>
                               </div>
+                              <div *ngIf="message.audioLogger!= null"
+                                style="border:1px solid rgba(137, 143, 156, .20);border-radius: 1.3em;padding:5px 20px 0 20px;min-width: 250px;">
+                                <div>
+                                  <p style="font-weight: 800;margin: 0;">{{getMessageCallLog(message)}}</p>
+                                  <div style="display: flex;justify-content: flex-start;align-items: center;">
+                                    <i class="fas fa-external-link-alt"
+                                      style="font-size: 14px;color:#9197a3;margin:20px 10px;"></i>
+                                    <span
+                                      style="font-weight: 800;color: #9197a3;">{{transformDateMessage(message.date)}}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div
+                                  style="border-top:1px solid rgba(137, 143, 156, .20);display: flex;justify-content: center;align-items: center;">
+                                  <button class="button-success"
+                                    (click)="callUser(message.audioLogger == 1)">Rappeler</button>
+
+                                </div>
+
+                              </div>
                               <p *ngIf="message.content.length>0">{{message.content}}</p>
                             </div>
                           </div>
-                          <span class="tooltiptext-left">
+                          <span *ngIf="message.audioLogger == null" class="tooltiptext-left">
                             <p>{{transformDateMessage(message.date)}}</p>
                           </span>
                         </div>
@@ -701,7 +725,7 @@
                     <div *ngIf="checkSenderMsg(message.sender)" class="convo-box convo-right">
                       <div class="convo-area-right">
                         <div class="convo-message-right">
-                          <span class="tooltiptext-right">
+                          <span *ngIf="message.audioLogger == null" class="tooltiptext-right">
                             <p>{{transformDateMessage(message.date)}}</p>
                           </span>
                           <div class="convo-message-content" style="display: flex;align-items: center;">
@@ -763,6 +787,26 @@
                                     </p>
                                   </div>
                                 </div>
+                              </div>
+                              <div *ngIf="message.audioLogger!= null"
+                                style="border:1px solid rgba(137, 143, 156, .20);border-radius: 1.3em;padding:5px 20px 0 20px;min-width: 250px;">
+                                <div>
+                                  <p style="font-weight: 800;margin: 0;">{{getMessageCallLog(message)}}</p>
+                                  <div style="display: flex;justify-content: flex-start;align-items: center;">
+                                    <i class="fas fa-external-link-alt"
+                                      style="font-size: 14px;color:#9197a3;margin:20px 10px;"></i>
+                                    <span
+                                      style="font-weight: 800;color: #9197a3;">{{transformDateMessage(message.date)}}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div
+                                  style="border-top:1px solid rgba(137, 143, 156, .20);display: flex;justify-content: center;align-items: center;">
+                                  <button class="button-success"
+                                    (click)="callUser(message.audioLogger == 1)">Rappeler</button>
+
+                                </div>
+
                               </div>
                               <p *ngIf=" message.content.length>0" [style.background-color]="getConversationColor()">
                                 {{message.content}}</p>
@@ -861,7 +905,7 @@
               <!--/ conversation-container -->
               <div class="type_messages">
                 <div *ngIf="!checkBlockedConversation()" class="input-field">
-                  <i class="fas fa-microphone" style="font-size: 24px; padding-right: 10px;"
+                  <i class="fas fa-microphone" style="font-size: 24px; padding-right: 10px;cursor: pointer;"
                     (click)="onOpenRecordPopUp()" [style.color]="getConversationColor()"></i>
                   <i class="fas fa-image send-message-icon" style="font-size: 24px; padding-right: 10px;"
                     [style.color]="getConversationColor()" (click)="uploadImageClicked()">
@@ -869,7 +913,7 @@
                   <textarea [minRows]="1" #inputMessage autosize placeholder="Type a new message" name="currentMessage"
                     (input)="convertMessage($event)" id="currentMessage" (focus)="messageFieldFocused()"
                     [(ngModel)]="currentMessage"></textarea>
-                  <i style="margin-left: -30px; font-size: 25px; padding-right: 10px;"
+                  <i style="margin-left: -30px; font-size: 25px; padding-right: 10px;cursor: pointer;"
                     [style.color]="getConversationColor()" class="fas fa-smile" (click)="toggleEmojiPicker()"></i>
                   <ul class="emoji">
                     <li>

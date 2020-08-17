@@ -9,7 +9,7 @@ router.get('/socket', (req, res) => {
     socket.emit('showUsers', null)
     res.status(200).json({ message: 'done' })
 })
-router.post('/', userController.registerUser)
+router.post('/', userController.uploadImage, userController.registerUser)
 router.get('/search-users', checkAuth, userController.searchUsers)
 router.patch('/disconnect', userController.disconnectUser)
 router.patch('/image', checkAuth, userController.updateProfileImg)

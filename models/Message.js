@@ -13,7 +13,8 @@ const messageSchema = new mongoose.Schema({
     images: [{ type: String }],
     content: { type: String, default: '' },
     videos: [{ type: String }],
-    audio: { type: String }
+    audio: { type: String },
+    audioLogger: { type: Number, default: null }
 
 
 })

@@ -56,7 +56,7 @@ export class CallRoomComponent implements OnInit {
     ngOnInit() {
         this.isVideoCall = this.router.snapshot.queryParamMap.get('video') == 'true';
         this.isCameraOpen = this.isVideoCall;
-        this.isOtherUserCameraOpen = this.isVideoCall;
+        this.isOtherUserCameraOpen = false;
         this.roomId = this.router.snapshot.paramMap.get('id');
         this.isCaller = this.router.snapshot.queryParamMap.get('iscaller') == 'true';
 
@@ -80,17 +80,35 @@ export class CallRoomComponent implements OnInit {
                 this.stopCallStream.next(true)
                 this.callStatus = false;
                 this.callState = 'Call Ended'
+                this.isOtherUserCameraOpen = false;
             })
         this.callRoomService.onCallEnded()
             .subscribe(res => {
                 // this.ringinSound.stop() 
+                this.isOtherUserCameraOpen = false;
                 if (this.time > 0) {
                     this.stopTimer();
                     this.callStatus = false;
                     this.callState = 'Call Ended...'
+                    if (this.isCaller) {
+                        this.callRoomService.getConversationByUsers(this.userCallDes._id)
+                            .subscribe((response: any) => {
+                                this.callRoomService.logCall(response.conversation._id, true, this.isVideoCall)
+                                    .subscribe()
+
+                            })
+                    }
                 } else {
                     this.callStatus = false;
                     this.callState = 'Call Ended...'
+                    if (this.isCaller) {
+                        this.callRoomService.getConversationByUsers(this.userCallDes._id)
+                            .subscribe((response: any) => {
+                                this.callRoomService.logCall(response.conversation._id, false, false)
+                                    .subscribe()
+
+                            })
+                    }
                 }
                 this.stopCallStream.next(true)
 
@@ -102,6 +120,7 @@ export class CallRoomComponent implements OnInit {
 
                 if (state) {
 
+                    this.callStatus = true;
                     this.callState = 'ca sonne...'
                     // this.ringinSound.play()
 
@@ -110,6 +129,13 @@ export class CallRoomComponent implements OnInit {
                     this.callState = 'Pas de reponse'
                     this.stopCallStream.next(true)
                     this.callStatus = false;
+                    if (this.isCaller)
+                        this.callRoomService.getConversationByUsers(this.userCallDes._id)
+                            .subscribe((response: any) => {
+                                this.callRoomService.logCall(response.conversation._id, false, false)
+                                    .subscribe()
+
+                            })
                 }
             })
         this.callRoomService.getConnectUser()
@@ -123,6 +149,8 @@ export class CallRoomComponent implements OnInit {
                             this.callRoomService.callUser(this.connectedUser._id, this.userCallDes._id, this.isVideoCall)
                         else {
                             this.startTimer()
+                            this.isOtherUserCameraOpen = this.isVideoCall
+
                         }
                     })
 
@@ -130,8 +158,8 @@ export class CallRoomComponent implements OnInit {
 
         this.callRoomService.onCameraStateChanged()
             .subscribe((action: boolean) => {
-                console.log(action)
                 this.isOtherUserCameraOpen = action
+                this.isVideoCall = this.isCameraOpen || action
             })
         this.createCall()
 
@@ -142,9 +170,18 @@ export class CallRoomComponent implements OnInit {
         }
         this.callStatus = false;
         this.callState = 'Call Ended'
+        this.isOtherUserCameraOpen = false;
         this.callRoomService.endCall(this.userCallDes, false)
         this.callRoomService.endCall(this.userCallDes, true)
         this.stopCallStream.next(true)
+        if (this.isCaller) {
+            this.callRoomService.getConversationByUsers(this.userCallDes._id)
+                .subscribe((response: any) => {
+                    this.callRoomService.logCall(response.conversation._id, true, this.isVideoCall)
+                        .subscribe()
+
+                })
+        }
 
 
     }
@@ -152,6 +189,7 @@ export class CallRoomComponent implements OnInit {
         this.isCameraOpen = status
         this.pauseResumeCameraStream.next(this.isCameraOpen)
         this.callRoomService.userOpenCloseCamera(this.userCallDes._id, status)
+        this.isVideoCall = this.isOtherUserCameraOpen || status;
     }
     onOpenAndCloseMicro(status: boolean) {
         this.isMicroOpen = status
@@ -202,6 +240,8 @@ export class CallRoomComponent implements OnInit {
                     .subscribe(userId => {
                         this.startTimer();
                         this.connectToNewUser(userId, stream)
+                        this.isOtherUserCameraOpen = this.isVideoCall
+
                     })
             })
     }
