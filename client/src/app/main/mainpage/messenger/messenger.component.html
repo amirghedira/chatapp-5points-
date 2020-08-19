@@ -53,7 +53,9 @@
         </h4>
       </div>
       <div class="modal-content-text" style="display: flex;">
-        <img [src]="callerUser.profileImg" alt="" style="height: 80px;width: 80px;border-radius: 50%;">
+        <div [style.background-image]="'url('+callerUser.profileImg+')'" alt="" style="height: 80px;width: 80px;"
+          class="img-circle">
+        </div>
         <div style="margin-left: 20px;">
           <p>
             {{callerUser.surname}} {{callerUser.name}} vous appelle.
@@ -137,23 +139,39 @@
       </div>
       <div class="users-container">
 
-        <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true, destinationUser)">
-          <img [src]="currentConversation.users[destinationUser].profileImg" class="img-circle"
-            style="height: 30px;width: 30px;margin-right: 10px;" alt="">
-          <h4 class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
+        <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true, currentConversation.users[destinationUser]._id)">
+          <div [style.background-image]="'url('+currentConversation.users[destinationUser].profileImg+')'"
+            class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;">
+          </div>
+          <h4 *ngIf="!userHavePseudo(currentConversation._id,currentConversation.users[destinationUser]._id)"
+            class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
             {{currentConversation.users[destinationUser].name}} {{currentConversation.users[destinationUser].surname}}
           </h4>
-        </div>
-        <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true, destinationUser==1 ? 0:1)">
-          <img src="assets/img/users/6.jpg" class="img-circle" style="height: 30px;width: 30px;margin-right: 10px;"
-            alt="">
-          <h4 *ngIf="destinationUser==1" class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
-            {{currentConversation.users[0].name}} {{currentConversation.users[0].surname}}
-          </h4>
-          <h4 *ngIf="destinationUser==0" class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
-            {{currentConversation.users[1].name}} {{currentConversation.users[1].surname}}
-          </h4>
+          <div *ngIf="userHavePseudo(currentConversation._id,currentConversation.users[destinationUser]._id)">
+            <h4 class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
+              {{getUserPseudo(currentConversation._id,currentConversation.users[destinationUser]._id)}}
+            </h4>
+            <p style="color: #999999;font-size: 11px;margin: 0;">
+              {{currentConversation.users[destinationUser].name}} {{currentConversation.users[destinationUser].surname}}
+            </p>
 
+          </div>
+        </div>
+        <div class="user-edit-pseudo" (click)="onOpenPseudoModal(true, connectedUser._id)">
+          <div [style.background-image]="'url('+connectedUser.profileImg+')'" class="img-circle"
+            style="height: 30px;width: 30px;margin-right: 10px;"></div>
+          <h4 *ngIf="!userHavePseudo(currentConversation._id,connectedUser._id)" class="user-name"
+            style="margin:0;font-size: 15px;font-weight: 400;">
+            {{connectedUser.name}} {{connectedUser.surname}}
+          </h4>
+          <div *ngIf="userHavePseudo(currentConversation._id,connectedUser._id)">
+            <h4 class="user-name" style="margin:0;font-size: 15px;font-weight: 400;">
+              {{getUserPseudo(currentConversation._id,connectedUser._id)}}
+            </h4>
+            <p style="color: #999999;font-size: 11px;margin: 0;">
+              {{connectedUser.name}} {{connectedUser.surname}}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -165,15 +183,18 @@
     <div class="modal-container">
       <div class="modal-title">
         <h4 class="user-name">
-          Modifier le pseudo de {{currentConversation.users[selectedUserPseudoIndex].name}}
-          {{currentConversation.users[selectedUserPseudoIndex].surname}}
+          Modifier le pseudo de {{getSelectedUserPseudo().name}}
+          {{getSelectedUserPseudo().surname}}
         </h4>
         <p>
           Tous les participants de cette conversation le verront. </p>
       </div>
       <div class="modal-content-input">
         <input class="input-pseudo" type="text" name="enteredPseudo" [(ngModel)]="enteredPseudo"
-          [placeholder]="currentConversation.users[selectedUserPseudoIndex].name +' '+currentConversation.users[selectedUserPseudoIndex].surname" />
+          (input)="convertPseudoMessage($event)"
+          [placeholder]=getUserPseudo(currentConversation._id,selectedUserPseudoId) />
+        <i *ngIf="userHavePseudo(currentConversation._id,selectedUserPseudoId)" class="fas fa-times"
+          style="font-size: 18px;color: #999999;cursor: pointer;" (click)="removeUserPseudo(selectedUserPseudoId)"></i>
       </div>
       <div class="modal-footer">
         <div>
@@ -314,16 +335,18 @@
                         <span
                           *ngIf="conversation.users[indexUserDest(conversation._id)].connection.status && !checkBlockedConversations(conversation._id)"
                           class="online-status on-picture"></span>
-                        <img [src]="conversation.users[indexUserDest(conversation._id)].profileImg" class="img-circle"
-                          alt="">
+                        <div
+                          [style.background-image]="'url('+conversation.users[indexUserDest(conversation._id)].profileImg+')'"
+                          class="img-circle">
+                        </div>
                       </div>
                       <div class="user-message-info">
                         <div style="align-self: center;">
                           <div class="user-display">
 
                             <h4 [ngClass]="islastMessageSeen(conversation._id) ? 'read-userinfo' : 'not-read-userinfo'">
-                              {{conversation.users[indexUserDest(conversation._id)].name}}
-                              {{conversation.users[indexUserDest(conversation._id)].surname}}</h4>
+                              {{getUserPseudo(conversation._id, connectedUser._id == conversation.users[1]._id ? conversation.users[0]._id : conversation.users[1]._id)}}
+                            </h4>
                           </div>
 
                           <div style="display: flex; align-items: center;">
@@ -358,7 +381,8 @@
                                 (click)="archiveConversation(conversation._id)">Archiver</button>
                               <button class="dropdown-item"
                                 (click)="deleteConversation(conversation._id)">Supprimer</button>
-                              <button class="dropdown-item" (click)="blockUserConversation(conversation._id)">Bloqué les
+                              <button class="dropdown-item" (click)="blockUserConversation(conversation._id)">Bloqué
+                                les
                                 messages</button>
                             </div>
                           </div>
@@ -384,8 +408,7 @@
                   <li class="message-item">
                     <div class="user-message-details" (click)="onOpenSearchedConversation(user)">
                       <div class="user-message-img">
-                        <span class="online-status on-picture"></span>
-                        <img [src]="user.profileImg" class="img-circle" alt="">
+                        <div [style.background-image]="'url('+user.profileImg+')'" class="img-circle"></div>
                       </div>
                       <div class="user-message-info">
                         <div style="align-self: center;">
@@ -454,8 +477,8 @@
               </div>
               <div class="profile-info-container">
                 <div style="display: flex;justify-content: center;align-items: center;">
-                  <img [src]="currentConversation.users[destinationUser].profileImg" class="img-circle"
-                    style="width: 100px;height: 100px;" alt="">
+                  <div [style.background-image]="'url('+currentConversation.users[destinationUser].profileImg+')'"
+                    class="img-circle" style="width: 100px;height: 100px;"></div>
                 </div>
                 <div style="display: flex;justify-content: center;align-items: center;padding-top: 10px;">
                   <h4 class="user-name">
@@ -553,15 +576,14 @@
               <div class="conversation-header">
                 <div class="user-message-details">
                   <div class="user-message-img">
-                    <img [src]="currentConversation.users[destinationUser].profileImg" class="img-circle" alt="">
+                    <div [style.background-image]="'url('+currentConversation.users[destinationUser].profileImg+')'"
+                      class="img-circle"></div>
                   </div>
                   <div class="user-message-header">
-                    <h4 *ngIf="userHavePseudo()" class="user-name">
-                      {{getUserPseudo()}}
+                    <h4 class="user-name">
+                      {{getUserPseudo(currentConversation._id,currentConversation.users[destinationUser]._id)}}
                     </h4>
-                    <h4 *ngIf="!userHavePseudo()" class="user-name">{{currentConversation.users[destinationUser].name}}
-                      {{currentConversation.users[destinationUser].surname}}
-                    </h4>
+
                     <div style="display: flex; align-items: center;">
                       <span
                         *ngIf="currentConversation.users[destinationUser].connection.status && !checkBlockedConversation()"
@@ -624,7 +646,7 @@
                     Bienvenue à vous deux sur Messenger.
                   </div>
                 </div>
-                <div *ngIf="currentConversation.messages.length>0" style="position: relative;">
+                <div *ngIf="currentConversation.messages.length>0" style="position: relative;min-height: 42vh;">
                   <div *ngFor="let message of currentConversation.messages">
                     <div *ngIf=" !checkSenderMsg(message.sender)" class="convo-box convo-left">
                       <div class="convo-area-left">
@@ -633,31 +655,38 @@
                             class="conversation-user-image">
                         </div>
                         <div class="convo-message-left">
-                          <div class="convo-message-content" style="display: flex;align-items: center;">
-                            <div class="row" *ngIf="message.images.length>0 && message.available"
-                              style="max-width: 420px; padding-left: 5px;">
-                              <div class="col-6 no-pdd" *ngFor=" let imageUrl of message.images"
-                                style="margin-bottom: 5px;">
-                                <div class="display-image-sended" style="margin-left: 10px;"
-                                  [style.background-image]="'url(' +imageUrl+')'" (click)="setSelectedImage(imageUrl)">
-                                  <img *ngIf="getLoadingImageStatus(message._id)" src="./assets/img/loader.gif"
-                                    style="height: 50%;width: 50%;" />
+                          <div class="convo-message-content"
+                            [style.display]="message.videos.length == 0 && message.images.length == 0 ? 'flex':'inline'">
+
+                            <div style="display: flex;align-items: center;">
+                              <div class="row" *ngIf="message.images.length>0 && message.available"
+                                style="max-width: 420px; padding-left: 5px;">
+                                <div class="col-6 no-pdd" *ngFor=" let imageUrl of message.images"
+                                  style="margin-bottom: 5px;">
+                                  <div class="display-image-sended" style="margin-left: 10px;"
+                                    [style.background-image]="'url(' +imageUrl+')'"
+                                    (click)="setSelectedImage(imageUrl)">
+                                    <img *ngIf="getLoadingImageStatus(message._id)" src="./assets/img/loader.gif"
+                                      style="height: 50%;width: 50%;" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="row" *ngIf="message.videos.length>0 && message.available"
+                                style="max-width: 420px; padding-left: 5px;">
+                                <div class="col-6 no-pdd" *ngFor=" let video of message.videos"
+                                  style="margin-bottom: 5px;">
+                                  <div class="display-image-sended" style="margin-left: 10px;">
+                                    <video style="border-radius: 18px;" width="200" height="200" controls>
+                                      <source type="video/mp4" [src]="video" id="mp4" />
+                                    </video>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                            <div class="row" *ngIf="message.videos.length>0 && message.available"
-                              style="max-width: 420px; padding-left: 5px;">
-                              <div class="col-6 no-pdd" *ngFor=" let video of message.videos"
-                                style="margin-bottom: 5px;">
-                                <div class="display-image-sended" style="margin-left: 10px;">
-                                  <video style="border-radius: 18px;" width="200" height="200" controls>
-                                    <source type="video/mp4" [src]="video" id="mp4" />
-                                  </video>
-                                </div>
-                              </div>
-                            </div>
+
                             <div *ngIf="!message.available" class="message-text-left">
-                              <p class="message-deleted">{{currentConversation.users[destinationUser].name}} a supprimé
+                              <p class="message-deleted">{{currentConversation.users[destinationUser].name}} a
+                                supprimé
                                 un message
                               </p>
                             </div>
@@ -728,35 +757,38 @@
                           <span *ngIf="message.audioLogger == null" class="tooltiptext-right">
                             <p>{{transformDateMessage(message.date)}}</p>
                           </span>
-                          <div class="convo-message-content" style="display: flex;align-items: center;">
-                            <div *ngIf="message.available" style="position: relative;">
-                              <div *ngIf="getMessageControls(message._id)" (click)="deleteMessage(message._id)"
-                                class="message-options-items">Supprimer <span class="after-message-options"></span>
-                              </div>
+                          <div class="convo-message-content"
+                            [style.display]="message.videos.length == 0 && message.images.length == 0 ? 'flex':'inline'">
+                            <div style="display: flex;align-items: center;">
+                              <div *ngIf="message.available" style="position: relative;">
+                                <div *ngIf="getMessageControls(message._id)" (click)="deleteMessage(message._id)"
+                                  class="message-options-items">Supprimer <span class="after-message-options"></span>
+                                </div>
 
-                              <div class="message-options" (click)="openMessageControls(message._id)">
-                                <i class="fas fa-ellipsis-h message-options-icon"></i>
-                              </div>
-                            </div>
-                            <div class=" row" *ngIf="message.images.length>0 && message.available"
-                              style="max-width: 420px; padding-right: 5px;">
-                              <div class="col-6 no-pdd" *ngFor=" let imageUrl of message.images"
-                                style="margin-bottom: 5px;">
-                                <div class="display-image-sended" style="margin-right: 10px;"
-                                  [style.background-image]="'url('+imageUrl+')'" (click)="setSelectedImage(imageUrl)">
-                                  <img *ngIf="getLoadingImageStatus(message._id)" src="./assets/img/loader.gif"
-                                    style="height: 50%;width: 50%;" />
+                                <div class="message-options" (click)="openMessageControls(message._id)">
+                                  <i class="fas fa-ellipsis-h message-options-icon"></i>
                                 </div>
                               </div>
-                            </div>
-                            <div class="row" *ngIf="message.videos.length>0 && message.available"
-                              style="max-width: 420px; padding-right: 5px;">
-                              <div class="col-6 no-pdd" *ngFor=" let video of message.videos"
-                                style="margin-bottom: 5px;">
-                                <div class="display-image-sended" style="margin-right: 10px;">
-                                  <video style="border-radius: 18px;" width="200" height="200" controls>
-                                    <source type="video/mp4" [src]="video" id="mp4" />
-                                  </video>
+                              <div class=" row" *ngIf="message.images.length>0 && message.available"
+                                style="max-width: 420px; padding-right: 5px;">
+                                <div class="col-6 no-pdd" *ngFor=" let imageUrl of message.images"
+                                  style="margin-bottom: 5px;">
+                                  <div class="display-image-sended" style="margin-right: 10px;"
+                                    [style.background-image]="'url('+imageUrl+')'" (click)="setSelectedImage(imageUrl)">
+                                    <img *ngIf="getLoadingImageStatus(message._id)" src="./assets/img/loader.gif"
+                                      style="height: 50%;width: 50%;" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="row" *ngIf="message.videos.length>0 && message.available"
+                                style="max-width: 420px; padding-right: 5px;">
+                                <div class="col-6 no-pdd" *ngFor=" let video of message.videos"
+                                  style="margin-bottom: 5px;">
+                                  <div class="display-image-sended" style="margin-right: 10px;">
+                                    <video style="border-radius: 18px;" width="200" height="200" controls>
+                                      <source type="video/mp4" [src]="video" id="mp4" />
+                                    </video>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -836,7 +868,6 @@
 
                 <!--/ convo-box -->
                 <!--/ convo-box -->
-                <!-- amir -->
                 <div *ngIf="imagesToSend.length >0" class="add-image-container">
                   <div *ngFor="let image of imagesToSend">
                     <div class="image-to-send" [style.background-image]="'url('+image+')'">

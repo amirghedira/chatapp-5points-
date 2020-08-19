@@ -268,6 +268,19 @@ exports.updateConversationPseudos = async (req, res) => {
 
     }
 }
+exports.deleteConversationPseudo = async (req, res) => {
+    try {
+        const conversation = await Conversation.findById(req.params.convId).populate('users').populate('messages').exec()
+        const pseudoIndex = conversation.pseudos.findIndex(pseudo => pseudo.userid == req.params.userId)
+        conversation.pseudos.splice(pseudoIndex, 1)
+        await conversation.save()
+
+        res.status(200).json({ pseudoIndex: pseudoIndex })
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+
+    }
+}
 
 exports.archiveConversation = async (req, res) => {
 
@@ -339,7 +352,10 @@ exports.updateConversationEmoji = async (req, res) => {
 
 exports.deleteMessage = async (req, res) => {
     try {
-        await Message.updateOne({ _id: req.params.id }, { $set: { available: false } })
+        const message = await Message.findByIdAndUpdate(req.params.id, { $set: { available: false } })
+        const conversation = await Conversation.findOne({ _id: message.conversation }).populate('users').populate('messages').exec()
+        const destinationUser = conversation.users.findIndex(user => user._id != message.sender)
+        socket.emit('send-message', { userid: conversation.users[destinationUser]._id, conversation: filterConversationMessages(conversation, conversation.users[destinationUser]._id) })
         res.status(200).json({ message: 'message successfully deleted' })
 
 

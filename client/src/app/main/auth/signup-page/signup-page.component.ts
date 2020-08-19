@@ -61,8 +61,8 @@ export class SignUpPageComponent implements OnInit {
         fd.append('password', this.password)
         fd.append('name', this.name)
         fd.append('surname', this.surname)
-        fd.append('address', this.name)
-        fd.append('phone', this.surname)
+        fd.append('address', this.address)
+        fd.append('phone', this.phone)
 
         this.authService.userRegistration(fd).subscribe((response: any) => {
             Swal.fire({

@@ -26,7 +26,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
     currentMessage: string;
     userConversations: any;
     searchTerms: string;
-    selectedUserPseudoIndex: number;
+    selectedUserPseudoId: string;
     enteredPseudo: string;
     videosToSend: any;
     searchedUsers: any;
@@ -98,7 +98,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
         this.showImage = false;
         this.selectedImage = null;
         this.openMicroPopUp = false;
-        this.selectedUserPseudoIndex = null;
+        this.selectedUserPseudoId = null;
         this.openPseudoModal = false;
         this.openColorsModal = false;
         this.loadingImages = false;
@@ -246,6 +246,10 @@ export class MessengerComponent implements OnInit, OnDestroy {
             return;
         }
         this.currentMessage = this.emoji.replace_colons(e.target.value);
+
+    }
+    convertPseudoMessage(e) {
+        this.enteredPseudo = this.emoji.replace_colons(e.target.value);
 
     }
     sendSingleEmoji() {
@@ -409,6 +413,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
         this.messengerService.getConnectUser().subscribe((result: any) => {
             this.connectedUser = result.user
             this.messengerService.getUserConversations().subscribe((response: any) => {
+                console.log(response.conversations)
                 this.userConversations = response.conversations.sort((c1: any, c2: any) => {
                     const messagedate1 = c1.messages[c1.messages.length - 1].date;
                     const messagedate2 = c2.messages[c2.messages.length - 1].date;
@@ -716,6 +721,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
                         this.messengerService.sendVocalMessage(this.currentConversation._id, blob)
                             .subscribe((response: any) => {
                                 this.currentConversation.messages.push(response.message)
+                                this.setVocalMessages()
                             })
                     }
                     this.stopRecordingVocal.complete()
@@ -783,7 +789,7 @@ export class MessengerComponent implements OnInit, OnDestroy {
                     this.searchTerms = '';
                 }
                 else {
-                    this.currentConversation = { _id: null, users: [{ ...this.connectedUser }, { ...user }], messages: [], emoji: '👍', blocked: [] }
+                    this.currentConversation = { _id: null, users: [{ ...this.connectedUser }, { ...user }], messages: [], emoji: '👍', blocked: [], pseudos: [] }
                     this.destinationUser = 1;
                     this.loadingMessages = false;
                     this.selectedConversation = true;
@@ -962,26 +968,77 @@ export class MessengerComponent implements OnInit, OnDestroy {
 
     };
     saveUserPseudo() {
-        console.log(this.enteredPseudo)
-        this.messengerService.changeConversationPseudo(this.currentConversation._id, this.currentConversation.users[this.selectedUserPseudoIndex]._id, this.enteredPseudo)
+        this.messengerService.changeConversationPseudo(this.currentConversation._id, this.selectedUserPseudoId, this.enteredPseudo)
             .subscribe((response: any) => {
                 this.currentConversation.pseudos = response.conversationPseudos
+                const convIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
+                this.userConversations[convIndex].pseudos = response.conversationPseudos;
+                this.openPseudoModal = false;
+                this.enteredPseudo = ''
+
             })
+
     }
-    onOpenPseudoModal(status: boolean, selectedUserIndex) {
-        this.selectedUserPseudoIndex = selectedUserIndex
+    onOpenPseudoModal(status: boolean, selectedUserId) {
+        this.selectedUserPseudoId = selectedUserId
         this.openPseudoModal = status
-
+        if (status) {
+            if (this.userHavePseudo(this.currentConversation._id, this.selectedUserPseudoId))
+                this.enteredPseudo = this.getUserPseudo(this.currentConversation._id, this.selectedUserPseudoId)
+            else
+                this.enteredPseudo = ''
+        }
+        console.log(this.currentConversation.pseudos)
     };
-    getUserPseudo() {
-
-        const pseudoIndex = this.currentConversation.pseudos.findIndex(pseudo => pseudo.userid == this.currentConversation.users[this.destinationUser]._id)
-        return this.currentConversation.pseudos[pseudoIndex].content
+    getUserPseudo(convId, userId) {
+        if (!convId)
+            return this.currentConversation.users[this.destinationUser].name + ' ' + this.currentConversation.users[this.destinationUser].surname
+        const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == convId)
+        if (conversationIndex == -1) {
+            if (this.currentConversation.pseudos.length > 0) {
+                const pseudoIndex = this.currentConversation.pseudos.findIndex(pseudo => pseudo.userid == userId)
+                const pseudo = this.currentConversation.pseudos[pseudoIndex]
+                if (pseudo)
+                    return pseudo.content
+            }
+        }
+        if (this.userConversations[conversationIndex].pseudos.length > 0) {
+            const pseudoIndex = this.userConversations[conversationIndex].pseudos.findIndex(pseudo => pseudo.userid == userId)
+            const pseudo = this.userConversations[conversationIndex].pseudos[pseudoIndex]
+            if (pseudo)
+                return pseudo.content
+        }
+        const userIndex = this.userConversations[conversationIndex].users.findIndex(user => user._id == userId)
+        return this.userConversations[conversationIndex].users[userIndex].name + ' ' + this.userConversations[conversationIndex].users[userIndex].surname
     }
-    userHavePseudo() {
-        if (this.currentConversation._id)
-            return this.currentConversation.pseudos.findIndex(pseudo => pseudo.userid == this.currentConversation.users[this.destinationUser]._id) != -1
+    userHavePseudo(convId, userId) {
+        if (!convId)
+            return false
+
+        const conversationIndex = this.userConversations.findIndex(conversation => conversation._id == convId)
+        if (this.userConversations[conversationIndex]._id) {
+            const userIndex = this.userConversations[conversationIndex].users.findIndex(user => user._id == userId)
+            return this.userConversations[conversationIndex].pseudos.findIndex(pseudo => pseudo.userid == this.userConversations[conversationIndex].users[userIndex]._id) != -1
+        }
         return false
+    }
+    getSelectedUserPseudo() {
+        const userIndex = this.currentConversation.users.findIndex(user => user._id == this.selectedUserPseudoId)
+        return this.currentConversation.users[userIndex]
+    }
+    removeUserPseudo(userid) {
+        console.log(this.currentConversation.pseudos)
+
+        this.messengerService.removeConversationPseudo(this.currentConversation._id, userid)
+            .subscribe((response: any) => {
+                const pseudoIndex = response.pseudoIndex;
+                this.currentConversation.pseudos.splice(pseudoIndex, 1)
+                const convIndex = this.userConversations.findIndex(conversation => conversation._id == this.currentConversation._id)
+                this.userConversations[convIndex].pseudos.splice(pseudoIndex, 1)
+                this.openPseudoModal = false;
+                console.log(this.currentConversation.pseudos)
+
+            })
     }
     onOpenColorsModal(status: boolean) {
         this.openColorsModal = status

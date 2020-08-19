@@ -46,7 +46,6 @@ export class ProfileSettingsComponent implements OnInit {
         this.mainPageService.getConnectUser()
             .subscribe((response: any) => {
                 this.userProfile = response.user;
-                this.userProfile.address = 'skanes'
             })
     }
 

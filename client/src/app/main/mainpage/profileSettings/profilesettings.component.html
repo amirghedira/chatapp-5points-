@@ -141,8 +141,8 @@
             <div class="edit-image-container">
               <i class="far fa-edit edit-image-icon" (click)="uploadImage.click()"></i>
             </div>
-            <img [src]="userProfile.profileImg" class="img-responsive img-circle" style="width: 150px;height: 150px;"
-              alt="">
+            <div class="profile-image" [style.background-image]="'url('+userProfile.profileImg+')'">
+            </div>
           </div>
         </div>
         <div style="display: flex;justify-content: center;align-items: center;padding-top: 10px;">

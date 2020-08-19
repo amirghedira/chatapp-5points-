@@ -8,7 +8,8 @@
       <div class="dropdown">
         <div style="display: flex; align-items: center;cursor: pointer;" id="dropdownMenuButton" data-toggle="dropdown"
           aria-haspopup="true">
-          <img [src]="currentUser.profileImg" class="img-circle" alt="">
+          <div [style.background-image]="'url('+currentUser.profileImg+')'" class="profile-image">
+          </div>
           <h4 style="margin: 0;padding:10px;">
             {{currentUser.name}} {{currentUser.surname}}
           </h4>

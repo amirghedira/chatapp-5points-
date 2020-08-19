@@ -189,5 +189,8 @@ export class MessengerService {
     changeConversationPseudo(convId: string, userid: string, content: string) {
         return this.http.patch(`http://localhost:5000/conversation/pseudos/${convId}`, { userid, content })
     }
+    removeConversationPseudo(convId: string, userid) {
+        return this.http.delete(`http://localhost:5000/conversation/pseudos/${convId}/${userid}`)
+    }
 
 }

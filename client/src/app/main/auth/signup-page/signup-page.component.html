@@ -11,7 +11,8 @@
               <div class="edit-image-container">
                 <i class="far fa-edit edit-image-icon" (click)="uploadImage.click()"></i>
               </div>
-              <img [src]="imagePreview" class="img-responsive img-circle" style="width: 150px;height: 150px;" alt="">
+              <div [style.background-image]="'url('+imagePreview+')'" class="img-circle">
+              </div>
             </div>
           </div>
         </div>

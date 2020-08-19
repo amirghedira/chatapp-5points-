@@ -19,6 +19,7 @@ router.patch('/delete/:id', checkAuth, conversationController.deleteConversation
 router.patch('/message/:convId', checkAuth, conversationController.markAsSeenConversation)
 router.get('/byusers/:userid', checkAuth, conversationController.getConversationByUsers)
 router.delete('/message/:id', checkAuth, conversationController.deleteMessage)
+router.delete('/pseudos/:convId/:userId', checkAuth, conversationController.deleteConversationPseudo)
 router.get('/', checkAuth, conversationController.getUserConversations)
 router.get('/:converId', checkAuth, conversationController.getConversation)
 
